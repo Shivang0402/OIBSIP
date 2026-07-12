@@ -1,0 +1,14 @@
+{
+  "name": "webdev-l3-pizzaorderingsystem",
+  "version": "1.0.0",
+  "description": "Pizza Ordering System - L3 Web Dev Project",
+  "private": true,
+  "scripts": {
+    "start": "npm start --prefix backend",
+    "dev": "npm run dev --prefix backend",
+    "install:backend": "npm install --prefix backend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
