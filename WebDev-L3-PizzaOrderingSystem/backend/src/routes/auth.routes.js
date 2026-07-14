@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const authMiddleware = require("../middlewares/authMiddleware");
+const { authMiddleware, authorize } = require("../middlewares/authMiddleware");
 
 const {
   registerUser,
   verifyEmail,
   userLogin,
   userProfile,
+  inventory,
   forgotPassword,
   resetPassword,
 } = require("../controllers/authController");
@@ -14,4 +15,5 @@ const {
 router.post("/register", registerUser);
 router.post("/login", userLogin);
 router.get("/profile", authMiddleware, userProfile);
+router.get("/inventory", authMiddleware, authorize("admin", "user"), inventory);
 module.exports = router;

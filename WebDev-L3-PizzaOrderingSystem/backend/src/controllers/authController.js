@@ -79,7 +79,7 @@ const userLogin = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "Login sucessfull",
-      message: {
+      data: {
         id: user.id,
         name: user.name,
         email: user.email,
@@ -96,14 +96,19 @@ const userLogin = async (req, res) => {
 };
 
 const userProfile = async (req, res) => {
-  const { name, email, phone, role } = req.user;
-
   const user = await User.findById(req.user.id).select("-password");
 
   return res.status(200).json({
     user,
   });
 };
+
+const inventory = async (req, res) => {
+  return res.status(200).json({
+    message: "Welcome to the inventory.",
+  });
+};
+
 const forgotPassword = async (req, res) => {};
 const resetPassword = async (req, res) => {};
 
@@ -112,6 +117,7 @@ module.exports = {
   verifyEmail,
   userLogin,
   userProfile,
+  inventory,
   forgotPassword,
   resetPassword,
 };
