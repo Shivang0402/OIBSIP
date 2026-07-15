@@ -12,7 +12,7 @@ const PizzaSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    prize: {
+    price: {
       type: Number,
       required: true,
       min: 0,
