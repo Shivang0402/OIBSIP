@@ -40,11 +40,32 @@ const addInventory = async (req, res) => {
 };
 
 const getInventory = async (req, res) => {
+  const { category } = req.query;
+  let inventory;
   try {
-    const inventory = await Inventory.find();
-    return res.status(201).json({
-      inventory,
-    });
+    if (category) {
+      inventory = await Inventory.find({ category });
+
+      if (!inventory.length > 0) {
+        return res.status(404).json({
+          message: "Category does not exist.",
+        });
+      } else {
+        return res.status(201).json({
+          inventory,
+        });
+      }
+    } else {
+      inventory = await Inventory.find();
+      return res.status(201).json({
+        inventory,
+      });
+      if (!inventory) {
+        return res.status(404).json({
+          message: "No items in inventory.",
+        });
+      }
+    }
   } catch (error) {
     return res.status(500).json({
       success: false,
