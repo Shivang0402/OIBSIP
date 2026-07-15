@@ -20,4 +20,23 @@ const addPizza = async (req, res) => {
     });
   }
 };
-module.exports = addPizza;
+
+const getPizza = async (req, res) => {
+  try {
+    const pizza = await Pizza.find();
+    if (!pizza) {
+      return res.status(404).json({
+        message: "No pizza exists.",
+      });
+    }
+    return res.status(201).json({
+      pizza,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.name,
+      message: error.message,
+    });
+  }
+};
+module.exports = { addPizza, getPizza };
