@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const inventorySchema = mongoose.Schema(
+const PizzaSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -7,28 +7,21 @@ const inventorySchema = mongoose.Schema(
       trim: true,
       unique: true,
     },
-    category: {
+    description: {
       type: String,
       required: true,
       trim: true,
-      enum: ["base", "sauce", "cheese", "vegetable"],
     },
-    stock: {
+    prize: {
       type: Number,
       required: true,
       min: 0,
-      default: 0,
     },
-    threshold: {
-      type: Number,
-      required: true,
-      min: 0,
-      default: 10,
-    },
-    unit: {
+    image: {
       type: String,
       required: true,
-      enum: ["pieces", "kg", "litre", "packets"],
+      trim: true,
+      default: "",
     },
     isAvailable: {
       type: Boolean,
@@ -38,4 +31,4 @@ const inventorySchema = mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("Inventory", inventorySchema);
+module.exports = mongoose.model("Pizza", PizzaSchema);
