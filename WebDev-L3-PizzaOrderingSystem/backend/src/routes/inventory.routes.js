@@ -4,6 +4,7 @@ const {
   addInventory,
   getInventory,
   updateInventory,
+  getInventoryStats,
 } = require("../controllers/inventory.controller");
 const { authMiddleware, authorize } = require("../middlewares/authMiddleware");
 
@@ -26,6 +27,13 @@ router.get(
   authMiddleware,
   authorize("admin", "user"), // User allowed as of now to test getInventory, to be changed after creating an admin account.
   getInventory,
+);
+
+router.get(
+  "/stats",
+  authMiddleware,
+  authorize("admin", "user"), // User allowed as of now to test getInventoryStats, to be changed after creating an admin account.
+  getInventoryStats,
 );
 
 module.exports = router;

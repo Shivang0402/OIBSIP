@@ -1,4 +1,5 @@
 const Inventory = require("../models/inventoryModel");
+const { inventory } = require("./auth.controller");
 
 const addInventory = async (req, res) => {
   const { name, category, stock, threshold, unit } = req.body;
@@ -109,5 +110,53 @@ const updateInventory = async (req, res) => {
     });
   }
 };
+const getInventoryStats = async (req, res) => {
+  let lowStockItems = 0;
+  try {
+    const inventory = await Inventory.find();
+    for (const item of inventory) {
+      if (item.stock <= item.threshold) {
+        lowStockItems++;
+      }
+    }
+    const totalItems = await Inventory.countDocuments();
+    const availableItems = await Inventory.countDocuments({
+      isAvailable: true,
+    });
+    const unAvailableItems = await Inventory.countDocuments({
+      isAvailable: false,
+    });
+    const countByCategory = await Inventory.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          totalItems: {
+            $sum: 1,
+          },
+        },
+      },
+    ]);
 
-module.exports = { addInventory, getInventory, updateInventory };
+    return res.status(201).json({
+      success: true,
+      data: {
+        totalItems,
+        availableItems,
+        unAvailableItems,
+        lowStockItems,
+        countByCategory,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+module.exports = {
+  addInventory,
+  getInventory,
+  updateInventory,
+  getInventoryStats,
+};
