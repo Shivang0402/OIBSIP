@@ -65,6 +65,28 @@ const placeOrder = async (req, res) => {
     });
   }
 };
+
+const getOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({
+      user: req.user.id,
+    });
+    if (orders.length == 0) {
+      return res.status(404).json({
+        message: "You do not have any orders yet.",
+      });
+    }
+    return res.status(201).json({
+      orders,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   placeOrder,
+  getOrders,
 };
