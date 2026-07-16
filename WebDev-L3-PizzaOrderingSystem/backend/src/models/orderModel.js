@@ -13,6 +13,24 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
+    pizzaSnapshot: {
+      name: {
+        type: String,
+        required: true,
+      },
+      description: {
+        type: String,
+        required: true,
+      },
+      image: {
+        type: String,
+        required: true,
+      },
+      price: {
+        type: Number,
+        required: true,
+      },
+    },
     customization: {
       base: {
         type: String,

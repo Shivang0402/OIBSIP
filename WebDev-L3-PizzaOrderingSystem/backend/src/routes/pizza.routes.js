@@ -8,7 +8,9 @@ const {
 const { authMiddleware, authorize } = require("../middlewares/authMiddleware");
 
 router.post("/addPizza", authMiddleware, authorize("user", "admin"), addPizza);
+
 router.get("/getPizza", authMiddleware, authorize("user", "admin"), getPizza);
+
 router.patch(
   "/updatePizza/:id",
   authMiddleware,
