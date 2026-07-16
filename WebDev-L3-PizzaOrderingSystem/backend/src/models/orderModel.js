@@ -2,16 +2,16 @@ const mongoose = require("mongoose");
 const orderSchema = new mongoose.Schema(
   {
     user: {
-      type: mongoose.Schema.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
     pizza: {
-      type: monggose.Schema.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Pizza",
     },
     quantity: {
       type: Number,
-      min: 0,
+      min: 1,
     },
     pizzaSnapshot: {
       name: {
@@ -50,11 +50,11 @@ const orderSchema = new mongoose.Schema(
         },
       ],
     },
-    price: {
+    totalPrice: {
       type: Number,
       required: true,
     },
-    orderAddress: {
+    deliveryAddress: {
       street: {
         type: String,
       },
@@ -78,14 +78,15 @@ const orderSchema = new mongoose.Schema(
     paymentStatus: {
       type: String,
       enum: ["Paid", "Pending", "Failed"],
+      default: "Pending",
     },
 
     orderStatus: {
       type: String,
       enum: ["Order Recevied", "In Kitchen", "On The Way", "Delievered"],
-      default: "Order Received",
+      default: "Order Recevied",
     },
   },
   { timestamps: true },
 );
-module.exports = mongoose.model("Order", "orderSchema");
+module.exports = mongoose.model("Order", orderSchema);

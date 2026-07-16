@@ -1,5 +1,70 @@
 const Order = require("../models/orderModel");
-const placeOrder = (req, res) => {
+const Pizza = require("../models/pizzaModel");
+const placeOrder = async (req, res) => {
+  const {
+    pizzaId,
+    quantity,
+    base,
+    sauce,
+    cheese,
+    vegetables,
+    deliveryAddress,
+  } = req.body;
+
+  const userId = req.user.id;
+
   try {
-  } catch (error) {}
+    if (!quantity || quantity < 1) {
+      return res.status(400).json({
+        message: "Quantity must be at least 1.",
+      });
+    }
+    const pizza = await Pizza.findById(pizzaId);
+
+    if (!pizza) {
+      return res.status(404).json({
+        message: "Pizza does not exist",
+      });
+    }
+    if (!pizza.isAvailable) {
+      return res.status(404).json({
+        message: "Pizza is not available at the moment",
+      });
+    }
+
+    const totalPrice = pizza.price * quantity;
+
+    const order = await Order.create({
+      user: userId,
+      pizza: pizza._id,
+      pizzaSnapshot: {
+        name: pizza.name,
+        description: pizza.description,
+        image: pizza.image,
+        price: pizza.price,
+      },
+      quantity,
+      customization: {
+        base,
+        sauce,
+        cheese,
+        vegetables,
+      },
+      deliveryAddress,
+      totalPrice,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Order placed",
+      order,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+module.exports = {
+  placeOrder,
 };
