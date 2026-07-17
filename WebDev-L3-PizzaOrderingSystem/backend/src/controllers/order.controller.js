@@ -68,13 +68,26 @@ const placeOrder = async (req, res) => {
 
 const getOrders = async (req, res) => {
   try {
-    const orders = await Order.find({
-      user: req.user.id,
-    });
-    if (orders.length == 0) {
-      return res.status(404).json({
-        message: "You do not have any orders yet.",
+    let order;
+
+    if (req.user.role === "admin") {
+      orders = await Order.find();
+
+      if (orders.length == 0) {
+        return res.status(404).json({
+          message: "No current orders.",
+        });
+      }
+    } else {
+      orders = await Order.find({
+        user: req.user.id,
       });
+
+      if (orders.length == 0) {
+        return res.status(404).json({
+          message: "You do not have any orders.",
+        });
+      }
     }
     return res.status(201).json({
       orders,
@@ -110,27 +123,9 @@ const getOrderById = async (req, res) => {
     });
   }
 };
-const getAllOrders = async (req, res) => {
-  try {
-    const orders = await Order.find();
-    if (orders.length == 0) {
-      return res.status(404).json({
-        message: "No current orders.",
-      });
-    }
-    return res.status(201).json({
-      orders,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
-  }
-};
 
 module.exports = {
   placeOrder,
   getOrders,
   getOrderById,
-  getAllOrders,
 };
