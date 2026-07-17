@@ -5,6 +5,7 @@ const {
   placeOrder,
   getOrders,
   getOrderById,
+  updateOrderStatus,
 } = require("../controllers/order.controller");
 const { authMiddleware, authorize } = require("../middlewares/authMiddleware");
 
@@ -16,5 +17,10 @@ router.get(
   authorize("user", "admin"),
   getOrderById,
 );
-
+router.post(
+  "/updateStatus/:id",
+  authMiddleware,
+  authorize("admin"),
+  updateOrderStatus,
+);
 module.exports = router;

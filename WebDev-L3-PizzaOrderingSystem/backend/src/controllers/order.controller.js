@@ -123,9 +123,26 @@ const getOrderById = async (req, res) => {
     });
   }
 };
+const updateOrderStatus = async (req, res) => {
+  const { orderStatus } = req.body;
+
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    { orderStatus },
+
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
+  return res.status(201).json({
+    orderStatus: order.orderStatus,
+  });
+};
 
 module.exports = {
   placeOrder,
   getOrders,
   getOrderById,
+  updateOrderStatus,
 };
