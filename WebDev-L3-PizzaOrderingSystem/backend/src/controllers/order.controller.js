@@ -88,11 +88,18 @@ const getOrders = async (req, res) => {
 
 const getOrderById = async (req, res) => {
   try {
-    const order = await Order.findOne({
-      _id: req.params.id,
-      user: req.user.id,
-    });
+    let order;
 
+    if (req.user.role === "admin") {
+      order = await Order.findOne({
+        _id: req.params.id,
+      });
+    } else {
+      order = await Order.findOne({
+        _id: req.params.id,
+        user: req.user.id,
+      });
+    }
     return res.status(201).json({
       order,
     });
