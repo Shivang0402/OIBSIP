@@ -86,7 +86,25 @@ const getOrders = async (req, res) => {
   }
 };
 
+const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: req.user.id,
+    });
+
+    return res.status(201).json({
+      order,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.name,
+      message: error.message,
+    });
+  }
+};
 module.exports = {
   placeOrder,
   getOrders,
+  getOrderById,
 };
