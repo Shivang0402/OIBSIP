@@ -41,27 +41,70 @@ const placeOrder = async (req, res) => {
       });
     };
 
-    if (!(await validateInventory(base, "base"))) {
+    const baseInventory = await validateInventory(base, "base");
+    if (!baseInventory) {
       return res.status(404).json({
         message: "Selected base is not availabe. ",
       });
     }
-    if (!(await validateInventory(sauce, "sauce"))) {
+    const sauceInventory = await validateInventory(sauce, "sauce");
+    if (!sauceInventory) {
       return res.status(404).json({
         message: "Selected sauce is not availabe. ",
       });
     }
-    if (!(await validateInventory(cheese, "cheese"))) {
+
+    const cheeseInventory = await validateInventory(cheese, "cheese");
+    if (!cheeseInventory) {
       return res.status(404).json({
         message: "Selected cheese is not availabe. ",
       });
     }
+
+    const vegetableDocument = [];
     for (const vegetable of vegetables) {
-      if (!(await validateInventory(vegetable, "vegetable"))) {
+      const vegetableInventory = await validateInventory(
+        vegetable,
+        "vegetable",
+      );
+      if (!vegetableInventory) {
         return res.status(404).json({
           message: `${vegetable} is not availabe.`,
         });
       }
+      vegetableDocument.push(vegetableInventory);
+    }
+
+    if (baseInventory.quanitity < quantity) {
+      return res
+        .status(400)
+        .json({ message: `${baseInventory.name} is out of stock` });
+    }
+    if (sauceInventory.quanitity < quantity) {
+      return res
+        .status(400)
+        .json({ message: `${sauceInventory.name} is out of stock` });
+    }
+    if (cheeseInventory.quantity < quantity) {
+      return res
+        .status(400)
+        .json({ message: `${cheeseInventory.name} is out of stock` });
+    }
+
+    for (const vegetableInventory of vegetableDocument) {
+      if (vegetableInventory.quanitity < quantity) {
+        return res
+          .status(400)
+          .json({ message: `${vegetableInventory.name} is out of stock` });
+      }
+    }
+
+    baseInventory.quanitity -= quantity;
+    sauceInventory.quanitity -= quantity;
+    cheeseInventory.quanitity -= quantity;
+
+    for (const vegetableInventory of vegetableDocument) {
+      vegetableInventory.quanitity -= quantity;
     }
 
     const totalPrice = pizza.price * quantity;
