@@ -33,8 +33,8 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    const validateInventory = async (name, category) => {
-      return await Inventory.findOne({
+    const validateInventory = (name, category) => {
+      return Inventory.findOne({
         name,
         category,
         isAvailable: true,
@@ -59,7 +59,7 @@ const placeOrder = async (req, res) => {
     for (const vegetable of vegetables) {
       if (!(await validateInventory(vegetable, "vegetable"))) {
         return res.status(404).json({
-          message: "Selected vegetable is not availabe. ",
+          message: `${vegetable} is not availabe.`,
         });
       }
     }
