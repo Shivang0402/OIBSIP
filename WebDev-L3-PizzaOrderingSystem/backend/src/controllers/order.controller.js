@@ -107,6 +107,28 @@ const placeOrder = async (req, res) => {
       vegetableInventory.quanitity -= quantity;
     }
 
+    if (baseInventory.quantity === 0) {
+      baseInventory.isAvailable = false;
+    }
+    if (sauceInventory.quantity === 0) {
+      sauceInventory.isAvailable = false;
+    }
+    if (cheeseInventory.quantity === 0) {
+      baseInventory.isAvailable = false;
+    }
+    for (const vegetableInventory of vegetableDocument) {
+      if (vegetableInventory.quanitity === 0) {
+        vegetableInventory.isAvailable = false;
+      }
+    }
+
+    await baseInventory.save();
+    await sauceInventory.save();
+    await cheeseInventory.save();
+    for (const vegetableInventory of vegetableDocument) {
+      await vegetableInventory.save();
+    }
+
     const totalPrice = pizza.price * quantity;
 
     const order = await Order.create({
