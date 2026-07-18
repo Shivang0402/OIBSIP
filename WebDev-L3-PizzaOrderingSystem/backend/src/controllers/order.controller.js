@@ -1,5 +1,6 @@
 const Order = require("../models/orderModel");
 const Pizza = require("../models/pizzaModel");
+const Inventory = require("../models/inventoryModel");
 const placeOrder = async (req, res) => {
   const {
     pizzaId,
@@ -30,6 +31,37 @@ const placeOrder = async (req, res) => {
       return res.status(404).json({
         message: "Pizza is not available at the moment",
       });
+    }
+
+    const validateInventory = async (name, category) => {
+      return await Inventory.findOne({
+        name,
+        category,
+        isAvailable: true,
+      });
+    };
+
+    if (!(await validateInventory(base, "base"))) {
+      return res.status(404).json({
+        message: "Selected base is not availabe. ",
+      });
+    }
+    if (!(await validateInventory(sauce, "sauce"))) {
+      return res.status(404).json({
+        message: "Selected sauce is not availabe. ",
+      });
+    }
+    if (!(await validateInventory(cheese, "cheese"))) {
+      return res.status(404).json({
+        message: "Selected cheese is not availabe. ",
+      });
+    }
+    for (const vegetable of vegetables) {
+      if (!(await validateInventory(vegetable, "vegetable"))) {
+        return res.status(404).json({
+          message: "Selected vegetable is not availabe. ",
+        });
+      }
     }
 
     const totalPrice = pizza.price * quantity;

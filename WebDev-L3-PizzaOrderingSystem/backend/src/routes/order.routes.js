@@ -9,7 +9,12 @@ const {
 } = require("../controllers/order.controller");
 const { authMiddleware, authorize } = require("../middlewares/authMiddleware");
 
-router.post("/placeOrder", authMiddleware, authorize("user"), placeOrder); //user
+router.post(
+  "/placeOrder",
+  authMiddleware,
+  authorize("user", "admin"),
+  placeOrder,
+); //user
 router.get("/getOrders", authMiddleware, authorize("user", "admin"), getOrders);
 router.get(
   "/getOrders/:id",
