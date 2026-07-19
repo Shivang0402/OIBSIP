@@ -75,60 +75,60 @@ const placeOrder = async (req, res) => {
       vegetableDocument.push(vegetableInventory);
     }
 
-    if (baseInventory.quanitity < quantity) {
+    if (baseInventory.stock < quantity) {
       return res
         .status(400)
-        .json({ message: `${baseInventory.name} is out of stock` });
+        .json({ message: `Not enough ${baseInventory.name} in the stock` });
     }
-    if (sauceInventory.quanitity < quantity) {
+    if (sauceInventory.stock < quantity) {
       return res
         .status(400)
-        .json({ message: `${sauceInventory.name} is out of stock` });
+        .json({ message: `Not enough ${sauceInventory.name} in the of stock` });
     }
-    if (cheeseInventory.quantity < quantity) {
+    if (cheeseInventory.stock < quantity) {
       return res
         .status(400)
-        .json({ message: `${cheeseInventory.name} is out of stock` });
+        .json({ message: `Not enough ${cheeseInventory.name} in the stock` });
     }
 
     for (const vegetableInventory of vegetableDocument) {
-      if (vegetableInventory.quanitity < quantity) {
+      if (vegetableInventory.stock < quantity) {
         return res
           .status(400)
-          .json({ message: `${vegetableInventory.name} is out of stock` });
+          .json({
+            message: `Not enough ${vegetableInventory.name} in the stock`,
+          });
       }
     }
 
-    baseInventory.quanitity -= quantity;
-    sauceInventory.quanitity -= quantity;
-    cheeseInventory.quanitity -= quantity;
+    baseInventory.stock -= quantity;
+    sauceInventory.stock -= quantity;
+    cheeseInventory.stock -= quantity;
 
     for (const vegetableInventory of vegetableDocument) {
-      vegetableInventory.quanitity -= quantity;
+      vegetableInventory.stock -= quantity;
     }
 
-    if (baseInventory.quantity === 0) {
+    if (baseInventory.stock === 0) {
       baseInventory.isAvailable = false;
     }
-    if (sauceInventory.quantity === 0) {
+    if (sauceInventory.stock === 0) {
       sauceInventory.isAvailable = false;
     }
-    if (cheeseInventory.quantity === 0) {
-      baseInventory.isAvailable = false;
+    if (cheeseInventory.stock === 0) {
+      cheeseInventory.isAvailable = false;
     }
     for (const vegetableInventory of vegetableDocument) {
-      if (vegetableInventory.quanitity === 0) {
+      if (vegetableInventory.stock === 0) {
         vegetableInventory.isAvailable = false;
       }
     }
-
     await baseInventory.save();
     await sauceInventory.save();
     await cheeseInventory.save();
     for (const vegetableInventory of vegetableDocument) {
       await vegetableInventory.save();
     }
-
     const totalPrice = pizza.price * quantity;
 
     const order = await Order.create({
