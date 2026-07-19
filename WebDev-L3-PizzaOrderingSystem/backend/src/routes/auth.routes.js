@@ -16,4 +16,5 @@ router.post("/register", registerUser);
 router.post("/login", userLogin);
 router.get("/profile", authMiddleware, userProfile);
 router.get("/inventory", authMiddleware, authorize("admin", "user"), inventory);
+
 module.exports = router;
