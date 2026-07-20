@@ -99,6 +99,12 @@ const userLogin = async (req, res) => {
     const user = await User.findOne({
       email,
     });
+    if (!user.isVerified) {
+      return res.status(400).json({
+        message:
+          "Email not verified. Please verify you email before logging in",
+      });
+    }
 
     if (!user) {
       return res.status(404).json({
