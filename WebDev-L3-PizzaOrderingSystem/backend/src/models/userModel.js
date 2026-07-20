@@ -45,7 +45,7 @@ const userSchema = mongoose.Schema(
       type: String,
     },
     passTokenExpires: {
-      type: String,
+      type: Date,
     },
   },
   { timestamps: true },

@@ -83,8 +83,8 @@ const verifyEmail = async (req, res) => {
   }
 
   user.isVerified = true;
-  user.verificationToken = "undefined";
-  user.verificationLink = "undefined";
+  user.verificationToken = undefined;
+  user.verificationLink = undefined;
 
   await user.save();
 
@@ -176,7 +176,7 @@ const forgotPassword = async (req, res) => {
 
     user.passToken = passToken;
     user.passTokenExpires = passTokenExpires;
-    user.save();
+    await user.save();
 
     const passVerificationLink = `http://localhost:4404/api/auth/resetpass/${passToken}`;
 
@@ -184,9 +184,9 @@ const forgotPassword = async (req, res) => {
       from: process.env.USER_EMAIL,
       to: user.email,
       subject: "Email verification for password change",
-      html: `<p>Hello<b> ${user.name} </b></p><br>
-      <p> Please click on the button to change password - </p><br>
-      <button><a href="${passVerificationLink}">Verify</a></button><br>`,
+      html: `<p>Hello<b> ${user.name} </b></p>
+      <p> Please click on the button to change password - 
+      ${passVerificationLink}</p>`,
     });
 
     return res.status(201).json({
@@ -200,6 +200,42 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { newPass, confirmNewPass } = req.body;
+
+  if (newPass !== confirmNewPass) {
+    return res.status(400).json({
+      message: "Passwords do not match",
+    });
+  }
+
+  const user = await User.findOne({
+    passToken: token,
+  });
+
+  if (!user) {
+    return res.status(400).json({
+      message: "Invalid token.",
+    });
+  }
+  if (user.passTokenExpires < Date.now()) {
+    return res.status(400).json({
+      message: "Token expired.",
+    });
+  }
+
+  user.password = await bcrypt.hash(newPass, 10);
+  user.passToken = undefined;
+  user.passTokenExpires = undefined;
+
+  await user.save();
+
+  return res.status(201).json({
+    message: "Password reset successfull.",
+  });
+};
+
 module.exports = {
   registerUser,
   verifyEmail,
@@ -207,5 +243,5 @@ module.exports = {
   userProfile,
   inventory,
   forgotPassword,
-  // resetPassword
+  resetPassword,
 };
