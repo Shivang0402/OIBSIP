@@ -13,8 +13,10 @@ const {
 } = require("../controllers/auth.controller");
 
 router.post("/register", registerUser);
+router.get("/verifyemail/:token", verifyEmail);
 router.post("/login", userLogin);
 router.get("/profile", authMiddleware, userProfile);
 router.get("/inventory", authMiddleware, authorize("admin", "user"), inventory);
 
 module.exports = router;
+``;

@@ -37,7 +37,7 @@ const registerUser = async (req, res) => {
       verificationToken,
       verificationTokenExpires,
     });
-    const verificationLink = `http://localhost:4404/api/auth/verifyemail${verificationToken}`;
+    const verificationLink = `http://localhost:4404/api/auth/verifyemail/${verificationToken}`;
 
     await transporter.sendMail({
       from: process.env.USER_EMAIL,
@@ -64,7 +64,35 @@ const registerUser = async (req, res) => {
   }
 };
 
-const verifyEmail = async (req, res) => {};
+const verifyEmail = async (req, res) => {
+  const { token } = req.params;
+
+  const user = await User.findOne({
+    verificationToken: token,
+  });
+
+  if (!user) {
+    return res.status(400).json({
+      message: "Invalid token.",
+    });
+  }
+  if (user.verificationTokenExpires < Date.now()) {
+    return res.status(400).json({
+      message: "Token expired.",
+    });
+  }
+
+  user.isVerified = true;
+  user.verificationToken = "undefined";
+  user.verificationLink = "undefined";
+
+  await user.save();
+
+  return res.status(201).json({
+    message: "Email verified successfully. You can login now.",
+  });
+};
+
 const userLogin = async (req, res) => {
   const { email, password } = req.body;
   try {
