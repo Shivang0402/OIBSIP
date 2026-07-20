@@ -236,6 +236,35 @@ const resetPassword = async (req, res) => {
   });
 };
 
+const changePassword = async (req, res) => {
+  const { currentPass, newPass, confirmNewPass } = req.body;
+  try {
+    const user = await User.findById(req.user.id);
+    if (newPass !== confirmNewPass) {
+      return res.status(401).json({
+        message: "Passwords do not match.",
+      });
+    }
+    const password = await bcrypt.hash(newPass, 10);
+    const verifyPass = bcrypt.compare(user.password, password);
+    if (!verifyPass) {
+      return res.status(401).json({
+        message: "Invalid password.",
+      });
+    }
+    user.password = password;
+    await user.save();
+    return res.status(201).json({
+      message: "Password changed successfully.",
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   verifyEmail,
@@ -244,4 +273,5 @@ module.exports = {
   inventory,
   forgotPassword,
   resetPassword,
+  changePassword,
 };
