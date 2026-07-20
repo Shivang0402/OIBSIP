@@ -15,8 +15,8 @@ const {
 router.post("/register", registerUser);
 router.get("/verifyemail/:token", verifyEmail);
 router.post("/login", userLogin);
+router.post("/forgotpass", forgotPassword);
 router.get("/profile", authMiddleware, userProfile);
 router.get("/inventory", authMiddleware, authorize("admin", "user"), inventory);
 
 module.exports = router;
-``;

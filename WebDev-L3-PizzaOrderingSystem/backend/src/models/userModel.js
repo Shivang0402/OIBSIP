@@ -41,6 +41,12 @@ const userSchema = mongoose.Schema(
     verificationTokenExpires: {
       type: Date,
     },
+    passToken: {
+      type: String,
+    },
+    passTokenExpires: {
+      type: String,
+    },
   },
   { timestamps: true },
 );

@@ -158,8 +158,47 @@ const inventory = async (req, res) => {
   });
 };
 
-const forgotPassword = async (req, res) => {};
-const resetPassword = async (req, res) => {};
+const forgotPassword = async (req, res) => {
+  try {
+    const passToken = crypto.randomBytes(32).toString("hex");
+    const passTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
+    const { email } = req.body;
+
+    const user = await User.findOne({
+      email: email,
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Invalid email address.",
+      });
+    }
+
+    user.passToken = passToken;
+    user.passTokenExpires = passTokenExpires;
+    user.save();
+
+    const passVerificationLink = `http://localhost:4404/api/auth/resetpass/${passToken}`;
+
+    await transporter.sendMail({
+      from: process.env.USER_EMAIL,
+      to: user.email,
+      subject: "Email verification for password change",
+      html: `<p>Hello<b> ${user.name} </b></p><br>
+      <p> Please click on the button to change password - </p><br>
+      <button><a href="${passVerificationLink}">Verify</a></button><br>`,
+    });
+
+    return res.status(201).json({
+      message:
+        "Please verify the password reset request from your registered email address.",
+    });
+  } catch (error) {
+    return res.status.json({
+      message: error.message,
+    });
+  }
+};
 
 module.exports = {
   registerUser,
@@ -168,5 +207,5 @@ module.exports = {
   userProfile,
   inventory,
   forgotPassword,
-  resetPassword,
+  // resetPassword
 };
