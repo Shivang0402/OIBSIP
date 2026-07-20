@@ -1,6 +1,9 @@
 const User = require("../models/userModel");
+const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const transporter = require("../config/mailer");
+
 const registerUser = async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
@@ -22,7 +25,8 @@ const registerUser = async (req, res) => {
         message: "User already exists",
       });
     }
-
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
       name,
@@ -30,11 +34,22 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       phone,
       role,
+      verificationToken,
+      verificationTokenExpires,
     });
+    const verificationLink = `http://localhost:4404/api/auth/verifyemail${verificationToken}`;
 
+    await transporter.sendMail({
+      from: process.env.USER_EMAIL,
+      to: user.email,
+      subject: "Email verification for PizzaExpress",
+      html: `<p>Hello<b> ${user.name} </b></p><br>
+      <p> Please click on the button to verify your email - </p><br>
+      <button><a href="${verificationLink}">Verify</a></button><br>
+      <p>${verificationLink}</p>`,
+    });
     return res.status(201).json({
-      message:
-        "Registration Sucessfull. Please verify your email before logging in.",
+      message: "Registration Sucessfull. Please verify your email to log in.",
       data: {
         userId: user._id,
         name: user.name,
