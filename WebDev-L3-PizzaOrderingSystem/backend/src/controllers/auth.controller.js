@@ -25,9 +25,11 @@ const registerUser = async (req, res) => {
         message: "User already exists",
       });
     }
+
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await User.create({
       name,
       email,
@@ -37,6 +39,7 @@ const registerUser = async (req, res) => {
       verificationToken,
       verificationTokenExpires,
     });
+
     const verificationLink = `http://localhost:4404/api/auth/verifyemail/${verificationToken}`;
 
     await transporter.sendMail({
@@ -48,6 +51,7 @@ const registerUser = async (req, res) => {
       <button><a href="${verificationLink}">Verify</a></button><br>
       <p>${verificationLink}</p>`,
     });
+
     return res.status(201).json({
       message: "Registration Sucessfull. Please verify your email to log in.",
       data: {
@@ -76,6 +80,7 @@ const verifyEmail = async (req, res) => {
       message: "Invalid token.",
     });
   }
+
   if (user.verificationTokenExpires < Date.now()) {
     return res.status(400).json({
       message: "Token expired.",
@@ -99,6 +104,7 @@ const userLogin = async (req, res) => {
     const user = await User.findOne({
       email,
     });
+
     if (!user.isVerified) {
       return res.status(400).json({
         message:
@@ -111,6 +117,7 @@ const userLogin = async (req, res) => {
         message: "User does not exist",
       });
     }
+
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
