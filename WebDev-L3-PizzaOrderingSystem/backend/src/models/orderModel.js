@@ -75,16 +75,23 @@ const orderSchema = new mongoose.Schema(
         required: true,
       },
     },
-    paymentStatus: {
-      type: String,
-      enum: ["Paid", "Pending", "Failed"],
-      default: "Pending",
-    },
 
     orderStatus: {
       type: String,
       enum: ["Order Recevied", "In Kitchen", "On the way", "Delievered"],
       default: "Order Recevied",
+    },
+
+    razorpayPaymentId: {
+      type: String,
+    },
+    razorpayOrderId: {
+      type: String,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["Paid", "Pending", "Failed"],
+      default: "Pending",
     },
   },
   { timestamps: true },
