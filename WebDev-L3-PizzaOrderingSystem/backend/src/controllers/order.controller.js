@@ -1,6 +1,8 @@
 const Order = require("../models/orderModel");
 const Pizza = require("../models/pizzaModel");
 const Inventory = require("../models/inventoryModel");
+const razorpay = require("../config/razorpay");
+const Razorpay = require("razorpay");
 const placeOrder = async (req, res) => {
   const {
     pizzaId,
@@ -93,11 +95,9 @@ const placeOrder = async (req, res) => {
 
     for (const vegetableInventory of vegetableDocument) {
       if (vegetableInventory.stock < quantity) {
-        return res
-          .status(400)
-          .json({
-            message: `Not enough ${vegetableInventory.name} in the stock`,
-          });
+        return res.status(400).json({
+          message: `Not enough ${vegetableInventory.name} in the stock`,
+        });
       }
     }
 
@@ -151,10 +151,23 @@ const placeOrder = async (req, res) => {
       totalPrice,
     });
 
+    const createRazorpayOrder = await razorpay.orders.create({
+      amount: order.totalPrice * 100,
+      currency: "INR",
+      receipt: order._id.toString(),
+    });
+
+    order.razorpayOrderId = razorpay.id;
+    await order.save();
+
     return res.status(201).json({
       success: true,
       message: "Order placed",
       order,
+      razorpayOrderId: razorpay.id,
+      amount: razorpay.amount,
+      currency: razorpay.currency,
+      key: process.env.RAZORPAY_API_KEY,
     });
   } catch (error) {
     return res.status(500).json({
