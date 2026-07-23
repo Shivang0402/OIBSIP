@@ -2,8 +2,8 @@ const Order = require("../models/orderModel");
 const Pizza = require("../models/pizzaModel");
 const Inventory = require("../models/inventoryModel");
 const razorpay = require("../config/razorpay");
-const Razorpay = require("razorpay");
 const crypto = require("crypto");
+
 const placeOrder = async (req, res) => {
   const {
     pizzaId,
@@ -15,28 +15,43 @@ const placeOrder = async (req, res) => {
     deliveryAddress,
   } = req.body;
 
-  const userId = req.user.id;
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({
+      message: "Unauthorized user.",
+    });
+  }
 
   try {
-    if (!quantity || quantity < 1) {
+    if (!quantity || Number(quantity) < 1) {
       return res.status(400).json({
         message: "Quantity must be at least 1.",
       });
     }
-    const pizza = await Pizza.findById(pizzaId);
 
+    if (!pizzaId || !base || !sauce || !cheese) {
+      return res.status(400).json({
+        message: "Pizza, base, sauce, and cheese are required.",
+      });
+    }
+
+    const pizza = await Pizza.findById(pizzaId);
     if (!pizza) {
       return res.status(404).json({
-        message: "Pizza does not exist",
-      });
-    }
-    if (!pizza.isAvailable) {
-      return res.status(404).json({
-        message: "Pizza is not available at the moment",
+        message: "Pizza does not exist.",
       });
     }
 
-    const validateInventory = (name, category) => {
+    if (!pizza.isAvailable) {
+      return res.status(400).json({
+        message: "Pizza is not available at the moment.",
+      });
+    }
+
+    const selectedVegetables = Array.isArray(vegetables) ? vegetables : [];
+
+    const validateInventory = async (name, category) => {
       return Inventory.findOne({
         name,
         category,
@@ -47,89 +62,64 @@ const placeOrder = async (req, res) => {
     const baseInventory = await validateInventory(base, "base");
     if (!baseInventory) {
       return res.status(404).json({
-        message: "Selected base is not availabe. ",
+        message: "Selected base is not available.",
       });
     }
+
     const sauceInventory = await validateInventory(sauce, "sauce");
     if (!sauceInventory) {
       return res.status(404).json({
-        message: "Selected sauce is not availabe. ",
+        message: "Selected sauce is not available.",
       });
     }
 
     const cheeseInventory = await validateInventory(cheese, "cheese");
     if (!cheeseInventory) {
       return res.status(404).json({
-        message: "Selected cheese is not availabe. ",
+        message: "Selected cheese is not available.",
       });
     }
 
-    const vegetableDocument = [];
-    for (const vegetable of vegetables) {
+    const vegetableDocuments = [];
+    for (const vegetable of selectedVegetables) {
       const vegetableInventory = await validateInventory(
         vegetable,
         "vegetable",
       );
       if (!vegetableInventory) {
         return res.status(404).json({
-          message: `${vegetable} is not availabe.`,
+          message: `${vegetable} is not available.`,
         });
       }
-      vegetableDocument.push(vegetableInventory);
+      vegetableDocuments.push(vegetableInventory);
     }
 
     if (baseInventory.stock < quantity) {
-      return res
-        .status(400)
-        .json({ message: `Not enough ${baseInventory.name} in the stock` });
-    }
-    if (sauceInventory.stock < quantity) {
-      return res
-        .status(400)
-        .json({ message: `Not enough ${sauceInventory.name} in the of stock` });
-    }
-    if (cheeseInventory.stock < quantity) {
-      return res
-        .status(400)
-        .json({ message: `Not enough ${cheeseInventory.name} in the stock` });
+      return res.status(400).json({
+        message: `Not enough ${baseInventory.name} in stock.`,
+      });
     }
 
-    for (const vegetableInventory of vegetableDocument) {
+    if (sauceInventory.stock < quantity) {
+      return res.status(400).json({
+        message: `Not enough ${sauceInventory.name} in stock.`,
+      });
+    }
+
+    if (cheeseInventory.stock < quantity) {
+      return res.status(400).json({
+        message: `Not enough ${cheeseInventory.name} in stock.`,
+      });
+    }
+
+    for (const vegetableInventory of vegetableDocuments) {
       if (vegetableInventory.stock < quantity) {
         return res.status(400).json({
-          message: `Not enough ${vegetableInventory.name} in the stock`,
+          message: `Not enough ${vegetableInventory.name} in stock.`,
         });
       }
     }
 
-    baseInventory.stock -= quantity;
-    sauceInventory.stock -= quantity;
-    cheeseInventory.stock -= quantity;
-
-    for (const vegetableInventory of vegetableDocument) {
-      vegetableInventory.stock -= quantity;
-    }
-
-    if (baseInventory.stock === 0) {
-      baseInventory.isAvailable = false;
-    }
-    if (sauceInventory.stock === 0) {
-      sauceInventory.isAvailable = false;
-    }
-    if (cheeseInventory.stock === 0) {
-      cheeseInventory.isAvailable = false;
-    }
-    for (const vegetableInventory of vegetableDocument) {
-      if (vegetableInventory.stock === 0) {
-        vegetableInventory.isAvailable = false;
-      }
-    }
-    await baseInventory.save();
-    await sauceInventory.save();
-    await cheeseInventory.save();
-    for (const vegetableInventory of vegetableDocument) {
-      await vegetableInventory.save();
-    }
     const totalPrice = pizza.price * quantity;
 
     const order = await Order.create({
@@ -146,28 +136,30 @@ const placeOrder = async (req, res) => {
         base,
         sauce,
         cheese,
-        vegetables,
+        vegetables: selectedVegetables,
       },
       deliveryAddress,
       totalPrice,
+      paymentStatus: "Pending",
+      orderStatus: "Pending",
     });
 
-    const createRazorpayOrder = await razorpay.orders.create({
+    const razorpayOrder = await razorpay.orders.create({
       amount: order.totalPrice * 100,
       currency: "INR",
       receipt: order._id.toString(),
     });
 
-    order.razorpayOrderId = razorpay.id;
+    order.razorpayOrderId = razorpayOrder.id;
     await order.save();
 
     return res.status(201).json({
       success: true,
-      message: "Order placed",
+      message: "Order created successfully. Complete payment to confirm it.",
       order,
-      razorpayOrderId: razorpay.id,
-      amount: razorpay.amount,
-      currency: razorpay.currency,
+      razorpayOrderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
       key: process.env.RAZORPAY_API_KEY,
     });
   } catch (error) {
@@ -176,13 +168,22 @@ const placeOrder = async (req, res) => {
     });
   }
 };
+
 const verifyPayment = async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     req.body;
+
+  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    return res.status(400).json({
+      message: "Missing Razorpay payment data.",
+    });
+  }
+
   const body = razorpay_order_id + "|" + razorpay_payment_id;
+
   try {
     const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_API_KEY)
+      .createHmac("sha256", process.env.RAZORPAY_API_SECRET)
       .update(body)
       .digest("hex");
 
@@ -190,25 +191,160 @@ const verifyPayment = async (req, res) => {
       return res.status(400).json({
         message: "Invalid payment signature.",
       });
+    }
 
-      const order = await Order.findOne({
-        razorpayOrderId: razorpay_order_id,
+    const order = await Order.findOne({
+      razorpayOrderId: razorpay_order_id,
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found.",
+      });
+    }
+
+    if (order.paymentStatus === "Paid") {
+      return res.status(200).json({
+        message: "Payment already verified.",
+      });
+    }
+
+    const customization = order.customization || {};
+    const quantity = order.quantity || 1;
+
+    const baseInventory = await Inventory.findOne({
+      name: customization.base,
+      category: "base",
+      isAvailable: true,
+    });
+
+    const sauceInventory = await Inventory.findOne({
+      name: customization.sauce,
+      category: "sauce",
+      isAvailable: true,
+    });
+
+    const cheeseInventory = await Inventory.findOne({
+      name: customization.cheese,
+      category: "cheese",
+      isAvailable: true,
+    });
+
+    const vegetableDocuments = [];
+    for (const vegetable of customization.vegetables || []) {
+      const vegetableInventory = await Inventory.findOne({
+        name: vegetable,
+        category: "vegetable",
+        isAvailable: true,
       });
 
-      if (!order) {
-        return res.status(404).json({
-          message: "Order not found.",
+      if (!vegetableInventory) {
+        order.paymentStatus = "Failed";
+        order.orderStatus = "Cancelled";
+        await order.save();
+
+        return res.status(400).json({
+          message: `${vegetable} inventory is no longer available.`,
         });
       }
 
-      order.paymentStatus = "Paid";
-      order.razorpayPaymentId = razorpay_payment_id;
+      vegetableDocuments.push(vegetableInventory);
+    }
+
+    if (!baseInventory || !sauceInventory || !cheeseInventory) {
+      order.paymentStatus = "Failed";
+      order.orderStatus = "Cancelled";
       await order.save();
 
-      return res.status(201).json({
-        message: "Payment verified successfully",
+      return res.status(400).json({
+        message: "One or more selected ingredients are no longer available.",
       });
     }
+
+    if (baseInventory.stock < quantity) {
+      order.paymentStatus = "Failed";
+      order.orderStatus = "Cancelled";
+      await order.save();
+
+      return res.status(400).json({
+        message: `Not enough ${baseInventory.name} in stock.`,
+      });
+    }
+
+    if (sauceInventory.stock < quantity) {
+      order.paymentStatus = "Failed";
+      order.orderStatus = "Cancelled";
+      await order.save();
+
+      return res.status(400).json({
+        message: `Not enough ${sauceInventory.name} in stock.`,
+      });
+    }
+
+    if (cheeseInventory.stock < quantity) {
+      order.paymentStatus = "Failed";
+      order.orderStatus = "Cancelled";
+      await order.save();
+
+      return res.status(400).json({
+        message: `Not enough ${cheeseInventory.name} in stock.`,
+      });
+    }
+
+    for (const vegetableInventory of vegetableDocuments) {
+      if (vegetableInventory.stock < quantity) {
+        order.paymentStatus = "Failed";
+        order.orderStatus = "Cancelled";
+        await order.save();
+
+        return res.status(400).json({
+          message: `Not enough ${vegetableInventory.name} in stock.`,
+        });
+      }
+    }
+
+    baseInventory.stock -= quantity;
+    sauceInventory.stock -= quantity;
+    cheeseInventory.stock -= quantity;
+
+    for (const vegetableInventory of vegetableDocuments) {
+      vegetableInventory.stock -= quantity;
+      if (vegetableInventory.stock === 0) {
+        vegetableInventory.isAvailable = false;
+      }
+    }
+
+    if (baseInventory.stock === 0) {
+      baseInventory.isAvailable = false;
+    }
+
+    if (sauceInventory.stock === 0) {
+      sauceInventory.isAvailable = false;
+    }
+
+    if (cheeseInventory.stock === 0) {
+      cheeseInventory.isAvailable = false;
+    }
+
+    await baseInventory.save();
+    await sauceInventory.save();
+    await cheeseInventory.save();
+
+    for (const vegetableInventory of vegetableDocuments) {
+      await vegetableInventory.save();
+    }
+
+    order.paymentStatus = "Paid";
+    order.orderStatus = "Confirmed";
+    order.razorpayPaymentId = razorpay_payment_id;
+    order.paidAt = Date.now();
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment verified successfully.",
+      order,
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -219,28 +355,24 @@ const verifyPayment = async (req, res) => {
 
 const getOrders = async (req, res) => {
   try {
-    let order;
+    let orders;
 
     if (req.user.role === "admin") {
-      orders = await Order.find();
-
-      if (orders.length == 0) {
-        return res.status(404).json({
-          message: "No current orders.",
-        });
-      }
+      orders = await Order.find().sort({ createdAt: -1 });
     } else {
       orders = await Order.find({
         user: req.user.id,
-      });
-
-      if (orders.length == 0) {
-        return res.status(404).json({
-          message: "You do not have any orders.",
-        });
-      }
+      }).sort({ createdAt: -1 });
     }
-    return res.status(201).json({
+
+    if (!orders.length) {
+      return res.status(200).json({
+        orders: [],
+        message: "No orders found.",
+      });
+    }
+
+    return res.status(200).json({
       orders,
     });
   } catch (error) {
@@ -264,7 +396,14 @@ const getOrderById = async (req, res) => {
         user: req.user.id,
       });
     }
-    return res.status(201).json({
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found.",
+      });
+    }
+
+    return res.status(200).json({
       order,
     });
   } catch (error) {
@@ -274,21 +413,34 @@ const getOrderById = async (req, res) => {
     });
   }
 };
+
 const updateOrderStatus = async (req, res) => {
-  const { orderStatus } = req.body;
+  try {
+    const { orderStatus } = req.body;
 
-  const order = await Order.findByIdAndUpdate(
-    req.params.id,
-    { orderStatus },
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { orderStatus },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
-    {
-      new: true,
-      runValidators: true,
-    },
-  );
-  return res.status(201).json({
-    orderStatus: order.orderStatus,
-  });
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found.",
+      });
+    }
+
+    return res.status(200).json({
+      orderStatus: order.orderStatus,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
 };
 
 module.exports = {
