@@ -3,6 +3,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const app = require("./app");
 const connectDb = require("./config/db");
+const setIO = require("../src/socket/socket");
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
@@ -16,6 +17,7 @@ const startServer = async () => {
     },
   });
 
+  setIO(io);
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
   });
