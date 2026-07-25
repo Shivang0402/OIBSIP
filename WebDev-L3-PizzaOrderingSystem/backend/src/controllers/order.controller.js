@@ -426,13 +426,18 @@ const updateOrderStatus = async (req, res) => {
         runValidators: true,
       },
     );
+    
 
     if (!order) {
       return res.status(404).json({
         message: "Order not found.",
       });
     }
-
+    const io = getIO();
+io.to(order.user.toString()).emit("orderStatusUpdated", {
+  orderId: order._id,
+  status: order.orderStatus,
+});
     return res.status(200).json({
       orderStatus: order.orderStatus,
     });
