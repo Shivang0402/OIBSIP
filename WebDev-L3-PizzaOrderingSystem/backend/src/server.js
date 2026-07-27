@@ -5,6 +5,7 @@ const app = require("./app");
 const connectDb = require("./config/db");
 const { setIO } = require("../src/socket/socket");
 const PORT = process.env.PORT || 5000;
+require("../src/cron/checkLowStock");
 
 const startServer = async () => {
   await connectDb();
