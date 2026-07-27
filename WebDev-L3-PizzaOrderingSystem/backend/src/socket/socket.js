@@ -1,12 +1,14 @@
 let io;
-const setIO = (SocketIO) => {
-  io = SocketIO;
+
+const setIO = (socketIO) => {
+  io = socketIO;
 };
 
 const getIO = () => {
   if (!io) {
-    throw new Error("Socket.io has not been initialized.");
+    throw new Error("Socket.IO has not been initialized.");
   }
+
   return io;
 };
 
