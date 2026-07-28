@@ -97,6 +97,9 @@ const updateInventory = async (req, res) => {
     if (isAvailable !== undefined) {
       inventory.isAvailable = isAvailable;
     }
+    if (inventory.stock > inventory.threshold) {
+      inventory.lowStockAlertSent = false;
+    }
     await inventory.save();
 
     return res.status(201).json({
