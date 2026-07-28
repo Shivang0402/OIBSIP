@@ -3,6 +3,7 @@ const Pizza = require("../models/pizzaModel");
 const Inventory = require("../models/inventoryModel");
 const razorpay = require("../config/razorpay");
 const crypto = require("crypto");
+const { getIO } = require("../socket/socket");
 
 const placeOrder = async (req, res) => {
   const {
