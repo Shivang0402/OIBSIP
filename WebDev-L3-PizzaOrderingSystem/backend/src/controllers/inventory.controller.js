@@ -1,5 +1,4 @@
 const Inventory = require("../models/inventoryModel");
-const { inventory } = require("./auth.controller");
 
 const addInventory = async (req, res) => {
   const { name, category, stock, threshold, unit } = req.body;
@@ -35,7 +34,7 @@ const addInventory = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: message.error,
+      message: error.message,
     });
   }
 };
@@ -58,14 +57,15 @@ const getInventory = async (req, res) => {
       }
     } else {
       inventory = await Inventory.find();
-      return res.status(201).json({
-        inventory,
-      });
-      if (!inventory) {
-        return res.status(404).json({
+
+      if (inventory.length === 0) {
+        return res.status(400).json({
           message: "No items in inventory.",
         });
       }
+      return res.status(201).json({
+        inventory,
+      });
     }
   } catch (error) {
     return res.status(500).json({
