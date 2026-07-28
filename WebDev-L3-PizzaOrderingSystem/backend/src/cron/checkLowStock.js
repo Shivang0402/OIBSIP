@@ -6,8 +6,11 @@ const User = require("../models/userModel");
 cron.schedule("* * * * *", async () => {
   try {
     const lowStockItems = await Inventory.find({
-      stock: { $lte: 5 },
+      $expr: {
+        $lte: ["$stock", "$threshold"],
+      },
       isAvailable: true,
+      lowStockAlertSent: false,
     });
 
     if (lowStockItems.length === 0) {
@@ -38,45 +41,18 @@ cron.schedule("* * * * *", async () => {
     const html = `
     <!DOCTYPE html>
     <html>
-    <head>
-      <style>
-        body{
-          font-family: Arial, sans-serif;
-        }
-
-        h2{
-          color:red;
-        }
-
-        ul{
-          padding-left:20px;
-        }
-
-        li{
-          margin-bottom:8px;
-        }
-      </style>
-    </head>
-
     <body>
-
       <h2> Low Stock Alert - PizzaExpress</h2>
-
       <p>The following inventory items are running low:</p>
-
       <ul>
         ${itemList}
       </ul>
-
       <p>Please restock these items as soon as possible.</p>
-
       <hr>
-
       <p>
         Regards,<br>
         <strong>PizzaExpress Inventory System</strong>
       </p>
-
     </body>
     </html>
     `;
@@ -88,6 +64,10 @@ cron.schedule("* * * * *", async () => {
       html,
     });
 
+    for (const item of lowStockItems) {
+      item.lowStockAlertSent = true;
+      await item.save();
+    }
     console.log("Low stock alert email sent.");
   } catch (error) {
     console.error(error);
