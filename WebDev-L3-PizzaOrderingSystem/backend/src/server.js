@@ -21,11 +21,11 @@ const startServer = async () => {
   setIO(io);
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
-  });
-  io.on("disconnect", () => {
-    consolelog(`User disconnected: ${socket.id}`);
-  });
 
+    socket.on("disconnect", () => {
+      console.log(`User disconnected: ${socket.id}`);
+    });
+  });
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
