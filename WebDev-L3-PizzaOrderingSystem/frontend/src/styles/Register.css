@@ -11,7 +11,7 @@
   display: grid;
   place-items: center;
   padding: clamp(16px, 3vw, 24px);
-  background: url("../assests/images/ChatGPT\\ Image\\ Jul\\ 29\\,\\ 2026\\,\\ 05_25_11\\ PM.png")
+  background: url("../assests/images/ChatGPT Image Jul 29, 2026, 05_25_11 PM.png")
     center/cover no-repeat;
 }
 .register-card {
