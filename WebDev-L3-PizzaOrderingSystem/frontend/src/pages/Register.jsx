@@ -12,6 +12,7 @@ function Register() {
           <input type="password" placeholder="Confirm pass" required />
           <input type="tel" placeholder="Phone" required />
           <button type="submit">Register</button>
+          <p>Already Registered? <a href="#">Login</a></p>
         </form>
       </div>
     </div>
