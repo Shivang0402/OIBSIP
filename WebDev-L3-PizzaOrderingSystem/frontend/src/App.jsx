@@ -1,15 +1,21 @@
-import './App.css';
-import { Routes, Route } from 'react-router-dom';
-import Register from './pages/register';
-import Login from './pages/login';  
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 
 function App() {
-  return(
-<Routes>
-  <Route path="/register" element={<Register />}/>
-  <Route path="/login" element={<Login />}/>
-</Routes>
-);
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <Route path="/verify-email/:token" element={<VerifyEmail />} />
+    </Routes>
+  );
 }
 
 export default App;

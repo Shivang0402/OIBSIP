@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-primary: #f97316;
+  --color-primary-hover: #fb923c;
+  --color-primary-light: rgba(249, 115, 22, 0.12);
+
+  --color-cream: #fff7ed;
+  --color-cream-dark: #ffedd5;
+
+  --color-charcoal: #1f2937;
+  --color-charcoal-light: #374151;
+  --color-muted: #6b7280;
+
+  --color-accent: #dc2626;
+  --color-success: #22c55e;
+
+  --color-white: #ffffff;
+  --color-border: rgba(31, 41, 55, 0.12);
+
+  --font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
+
+  --shadow-soft: 0 8px 32px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 24px 60px rgba(15, 23, 42, 0.12);
+
+  --transition: 0.2s ease;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--color-charcoal);
+  background: var(--color-cream);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font-family: inherit;
+}
