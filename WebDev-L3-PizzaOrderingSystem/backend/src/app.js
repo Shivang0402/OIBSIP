@@ -1,10 +1,12 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
 const authRoutes = require("./routes/auth.routes");
 const inventoryRoutes = require("./routes/inventory.routes");
 const pizzaRoutes = require("./routes/pizza.routes");
 const orderRoutes = require("./routes/order.routes");
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

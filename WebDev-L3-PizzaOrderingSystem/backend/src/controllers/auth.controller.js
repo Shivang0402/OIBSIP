@@ -40,12 +40,13 @@ const registerUser = async (req, res) => {
       verificationTokenExpires,
     });
 
-    const verificationLink = `http://localhost:4404/api/auth/verifyemail/${verificationToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const verificationLink = `${frontendUrl}/verify-email/${verificationToken}`;
 
     await transporter.sendMail({
-      from: process.env.USER_EMAIL,
+      from: process.env.EMAIL_USER,
       to: user.email,
-      subject: "Email verification for PizzaExpress",
+      subject: "Verify your PizzaNova account",
       html: `<p>Hello<b> ${user.name} </b></p><br>
       <p> Please click on the button to verify your email - </p><br>
       <button><a href="${verificationLink}">Verify</a></button><br>
@@ -101,28 +102,31 @@ const verifyEmail = async (req, res) => {
 const userLogin = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({
-      email,
-    });
-
-    if (!user.isVerified) {
+    if (!email || !password) {
       return res.status(400).json({
-        message:
-          "Email not verified. Please verify you email before logging in",
+        message: "Email and password are required.",
       });
     }
 
+    const user = await User.findOne({ email });
+
     if (!user) {
       return res.status(404).json({
-        message: "User does not exist",
+        message: "User does not exist.",
+      });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "Email not verified. Please verify your email before logging in.",
       });
     }
 
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
-      return res.status(404).json({
-        message: "Invalid credentails.",
+      return res.status(401).json({
+        message: "Invalid credentials.",
       });
     }
 
@@ -132,14 +136,15 @@ const userLogin = async (req, res) => {
       { expiresIn: process.env.EXPIRY },
     );
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
-      message: "Login sucessfull",
+      message: "Login successful",
       data: {
         id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
+        role: user.role,
       },
       token,
     });
@@ -185,7 +190,8 @@ const forgotPassword = async (req, res) => {
     user.passTokenExpires = passTokenExpires;
     await user.save();
 
-    const passVerificationLink = `http://localhost:4404/api/auth/resetpass/${passToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const passVerificationLink = `${frontendUrl}/reset-password/${passToken}`;
 
     await transporter.sendMail({
       from: process.env.USER_EMAIL,
@@ -201,7 +207,7 @@ const forgotPassword = async (req, res) => {
         "Please verify the password reset request from your registered email address.",
     });
   } catch (error) {
-    return res.status.json({
+    return res.status(500).json({
       message: error.message,
     });
   }
@@ -246,24 +252,33 @@ const resetPassword = async (req, res) => {
 const changePassword = async (req, res) => {
   const { currentPass, newPass, confirmNewPass } = req.body;
   try {
-    const user = await User.findById(req.user.id);
     if (newPass !== confirmNewPass) {
-      return res.status(401).json({
+      return res.status(400).json({
         message: "Passwords do not match.",
       });
     }
-    const password = await bcrypt.hash(newPass, 10);
-    const verifyPass = bcrypt.compare(user.password, password);
-    if (!verifyPass) {
-      return res.status(401).json({
-        message: "Invalid password.",
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
       });
     }
-    user.password = password;
+
+    const isMatch = await bcrypt.compare(currentPass, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Current password is incorrect.",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPass, 10);
     await user.save();
-    return res.status(201).json({
+
+    return res.status(200).json({
       message: "Password changed successfully.",
-      user,
     });
   } catch (error) {
     return res.status(500).json({

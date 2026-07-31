@@ -1,8 +1,10 @@
-import { useSearchParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import AuthLayout from '../components/auth/AuthLayout';
 import AuthCard from '../components/auth/AuthCard';
 import AuthLink from '../components/auth/AuthLink';
+import { verifyEmail } from '../services/authService';
 
 const statusConfig = {
   success: {
@@ -29,9 +31,31 @@ const statusConfig = {
 };
 
 function VerifyEmail() {
-  const [searchParams] = useSearchParams();
-  const status = searchParams.get('status') || 'success';
-  const config = statusConfig[status] || statusConfig.success;
+  const { token } = useParams();
+  const [status, setStatus] = useState('loading');
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    let active = true;
+
+    verifyEmail(token)
+      .then((data) => {
+        if (!active) return;
+        setStatus('success');
+        setMessage(data.message);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setStatus('error');
+        setMessage(error.message);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
+  const config = statusConfig[status];
   const Icon = config.icon;
 
   return (
@@ -41,7 +65,7 @@ function VerifyEmail() {
           <div className={`auth-status__icon ${config.iconClass}`}>
             <Icon size={32} className={status === 'loading' ? 'auth-status__spin' : ''} />
           </div>
-          <p className="auth-status__message">{config.message}</p>
+          <p className="auth-status__message">{status === 'loading' ? config.message : message}</p>
 
           {config.showLogin && (
             <Link to="/login" className="primary-button primary-button--link">
