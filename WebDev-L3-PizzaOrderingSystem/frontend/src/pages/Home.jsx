@@ -22,8 +22,12 @@ function Home() {
         <div className="auth-status">
           <p className="auth-status__message">
             Signed in as <strong>{user?.email}</strong>. Your order and dashboard pages
-            are coming soon — sign out below to switch accounts.
+            are coming soon — view your profile or sign out below.
           </p>
+
+          <PrimaryButton type="button" onClick={() => navigate('/profile')}>
+            View Profile
+          </PrimaryButton>
 
           <PrimaryButton type="button" onClick={handleSignOut}>
             Sign Out

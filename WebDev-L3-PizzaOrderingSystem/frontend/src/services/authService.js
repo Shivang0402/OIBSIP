@@ -23,3 +23,7 @@ export function resetPassword(token, payload) {
 export function getProfile() {
   return api.get('/auth/profile');
 }
+
+export function changePassword(payload) {
+  return api.post('/auth/changepass', payload);
+}
