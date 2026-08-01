@@ -17,13 +17,6 @@
   margin-bottom: 24px;
 }
 
-.menu-head__eyebrow {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--pn-primary-container);
-  margin: 0 0 4px;
-}
-
 .menu-head__title {
   font-family: var(--font-heading);
   font-size: clamp(1.75rem, 3.5vw, 2.25rem);
@@ -57,8 +50,10 @@
   margin-top: 24px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 11px 20px;
+  height: 44px;
+  padding: 0 20px;
   border: 1px solid var(--pn-primary);
   border-radius: var(--radius-md);
   background: transparent;

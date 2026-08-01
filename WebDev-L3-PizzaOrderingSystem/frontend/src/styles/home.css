@@ -266,32 +266,6 @@
   color: var(--pn-on-surface);
 }
 
-.home-section__link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--pn-primary);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.home-section__link svg {
-  transition: transform 0.18s ease;
-}
-
-.home-section__link:hover {
-  color: var(--pn-primary-container);
-}
-
-.home-section__link:hover svg {
-  transform: translateX(3px);
-}
-
 /* ---------- Menu state panels ---------- */
 
 .home-menu-panel {
@@ -340,7 +314,7 @@
 
 .home-pizzas {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
 }
 

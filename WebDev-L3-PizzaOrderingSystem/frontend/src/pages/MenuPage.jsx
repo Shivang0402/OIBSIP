@@ -47,7 +47,6 @@ function MenuPage() {
 
       <main className="menu-main">
         <section className="menu-head">
-          <p className="menu-head__eyebrow">Full Menu</p>
           <h1 className="menu-head__title">All Pizzas</h1>
           <p className="menu-head__subtitle">
             Every pizza we bake, straight from the oven to your doorstep.

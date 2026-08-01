@@ -122,11 +122,6 @@ function Home() {
         <section className="home-section">
           <div className="home-section__head">
             <h2 className="home-section__title">Our Menu</h2>
-            {user && !loading && !error && pizzas.length > 0 && (
-              <button className="home-section__link" type="button" onClick={() => navigate('/menu')}>
-                View All Menu
-              </button>
-            )}
           </div>
 
           {!user && (
