@@ -8,21 +8,13 @@ import {
   ShoppingCart,
   User,
 } from 'lucide-react';
+import AppHeader from '../components/AppHeader';
 import { getUser } from '../services/session';
 import { getPizzas } from '../services/pizzaService';
 import '../styles/home.css';
 
 const HERO_IMAGE =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuDJemqz0bDciV5G9Ue22OeqlR8gnYIMy2VhCs0jFbUxO4tU6WaQJo9gB32Py9ZN04ziZC7p9ISpjwAF_dLW3RguYVpri4tg3LpwfFRiXSbArNqr7nKYqCNkFe9jSJeGciDz4-LsEHoZTRgxTNq7Rf4VEZom3UllGPoLBz5UFTjsUoSCMs0IDNEIEXP1f2cdr5X7mJvBQrE0Zl02npqCCia6hhUS4gwBsWUWIIibxYFPFXQbV9askco';
-
-function getInitials(name) {
-  return (name || 'U')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
-    .join('');
-}
 
 function formatPrice(price) {
   return `₹${Number(price).toFixed(2)}`;
@@ -60,78 +52,28 @@ function Home() {
     };
   }, []);
 
-  function openProfile() {
-    navigate(user ? '/profile' : '/login');
-  }
-
   return (
     <div className="home-page">
-      <header className="home-nav">
-        <div className="home-nav__inner">
-          <div className="home-nav__left">
-            <Link className="home-nav__brand" to="/">
-              PizzaNova
-            </Link>
-          </div>
-
-          <nav className="home-nav__links" aria-label="Main">
-            <NavLink
-              to="/"
-              className={({ isActive }) => `home-nav__link${isActive ? ' home-nav__link--active' : ''}`}
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to="/menu"
-              className={({ isActive }) => `home-nav__link${isActive ? ' home-nav__link--active' : ''}`}
-            >
-              Menu
-            </NavLink>
-            <NavLink
-              to="/orders"
-              className={({ isActive }) => `home-nav__link${isActive ? ' home-nav__link--active' : ''}`}
-            >
-              Track Order
-            </NavLink>
-          </nav>
-
-          <div className="home-nav__right">
-            <button
-              className="home-nav__icon"
-              type="button"
-              aria-label="Cart"
-              onClick={() => navigate('/cart')}
-            >
-              <ShoppingCart size={20} />
-            </button>
-            {user ? (
-              <button
-                className="home-nav__avatar"
-                type="button"
-                onClick={openProfile}
-                aria-label="Open profile"
-                title={`Signed in as ${user.name}`}
-              >
-                {getInitials(user.name)}
-              </button>
-            ) : (
-              <button className="home-nav__signin" type="button" onClick={() => navigate('/login')}>
-                <User size={16} />
-                Sign In
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-
+      <AppHeader />
       <main className="home-main">
         <section className="home-greeting">
-          <p className="home-greeting__hello">
-            {user ? `Welcome back, ${user.name.split(' ')[0]}!` : 'Welcome to PizzaNova!'}
-          </p>
-          <p className="home-greeting__hint">
-            {user ? 'Hungry? Your favorite pizzas are waiting for you.' : 'Sign in to browse the menu and place your first order.'}
-          </p>
+          {user ? (
+            <>
+              <p className="home-greeting__eyebrow">Welcome back</p>
+              <h2 className="home-greeting__title">{user.name.split(' ')[0]}</h2>
+              <p className="home-greeting__hint">
+                Hungry? Your favorite pizzas are waiting for you.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="home-greeting__eyebrow">Welcome to</p>
+              <h2 className="home-greeting__title">PizzaNova</h2>
+              <p className="home-greeting__hint">
+                Sign in to browse the menu and place your first order.
+              </p>
+            </>
+          )}
         </section>
 
         <section className="home-hero">
@@ -157,6 +99,27 @@ function Home() {
               src={HERO_IMAGE}
               alt="Gourmet pepperoni pizza with melting mozzarella and fresh basil"
             />
+          </div>
+        </section>
+
+        <section className="home-builder-banner">
+          <div className="home-builder-banner__content">
+            <span className="home-builder-banner__chip">Pizza Customizer</span>
+            <h2 className="home-builder-banner__title">Build Your Own Pizza</h2>
+            <p className="home-builder-banner__text">
+              Pick your base, sauce, cheese and toppings — create your perfect slice from scratch.
+            </p>
+            <button
+              className="btn btn--light"
+              type="button"
+              onClick={() => navigate('/pizza-builder')}
+            >
+              Start Building
+              <ArrowRight size={18} />
+            </button>
+          </div>
+          <div className="home-builder-banner__art" aria-hidden="true">
+            <Pizza size={190} />
           </div>
         </section>
 

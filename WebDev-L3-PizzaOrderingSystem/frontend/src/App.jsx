@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import ProfilePage from './pages/ProfilePage';
+import PizzaBuilder from './pages/PizzaBuilder';
+import CartPage from './pages/CartPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -12,6 +14,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/pizza-builder" element={<PizzaBuilder />} />
+      <Route path="/cart" element={<CartPage />} />
       <Route path="/login" element={<Login />} />
       <Route
         path="/profile"
