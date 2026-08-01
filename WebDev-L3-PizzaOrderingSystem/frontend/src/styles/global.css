@@ -1,6 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
+  --pn-bg: #fcf9f8;
+  --pn-surface: #ffffff;
+  --pn-surface-low: #f6f3f2;
+  --pn-surface-high: #ede8e6;
+  --pn-on-surface: #1c1917;
+  --pn-on-surface-variant: #6b584e;
+  --pn-outline: #c4b4ac;
+  --pn-outline-variant: #e8ddd9;
+  --pn-primary: #a04100;
+  --pn-primary-container: #ff6b00;
+  --pn-on-primary-container: #572000;
+  --pn-secondary: #b7131a;
+  --pn-on-primary: #ffffff;
+  --pn-shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.05);
+  --pn-shadow-md: 0 4px 16px rgba(28, 25, 23, 0.07);
+  --pn-shadow-lg: 0 12px 32px rgba(28, 25, 23, 0.1);
+  --pn-radius-sm: 0.375rem;
+  --pn-radius-md: 0.625rem;
+  --pn-radius-lg: 0.875rem;
+  --pn-radius-xl: 1.125rem;
+
   --color-primary: #f97316;
   --color-primary-hover: #fb923c;
   --color-primary-light: rgba(249, 115, 22, 0.12);
@@ -18,19 +39,19 @@
   --color-white: #ffffff;
   --color-border: rgba(31, 41, 55, 0.12);
 
-  --font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-heading: 'Manrope', 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-body: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
 
-  --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-xl: 28px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
 
-  --shadow-soft: 0 8px 32px rgba(15, 23, 42, 0.08);
-  --shadow-card: 0 24px 60px rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.05), 0 2px 8px rgba(15, 23, 42, 0.04);
+  --shadow-card: 0 2px 4px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(15, 23, 42, 0.08);
 
-  --transition: 0.2s ease;
+  --transition: 0.18s ease;
 }
 
 *,
@@ -49,9 +70,10 @@ body,
 
 body {
   font-family: var(--font-family);
-  color: var(--color-charcoal);
-  background: var(--color-cream);
+  color: var(--pn-on-surface);
+  background: var(--pn-bg);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 a {

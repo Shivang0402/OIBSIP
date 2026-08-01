@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Pizza } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
+import ActiveOrderStrip from '../components/ActiveOrderStrip';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
+import HowItWorks from '../components/HowItWorks';
 import PizzaCard from '../components/PizzaCard';
 import { getUser } from '../services/session';
 import { getPizzas } from '../services/pizzaService';
@@ -70,7 +72,7 @@ function Home() {
 
         <section className="home-hero">
           <div className="home-hero__text">
-            <span className="home-hero__chip">Freshly Baked Today</span>
+            <span className="home-hero__chip">Freshly baked today</span>
             <h1 className="home-hero__title">
               The Future of <span>Pizza</span> is Here.
             </h1>
@@ -93,6 +95,8 @@ function Home() {
             />
           </div>
         </section>
+
+        <HowItWorks />
 
         <section className="home-builder-banner">
           <div className="home-builder-banner__content">
@@ -166,12 +170,22 @@ function Home() {
           )}
 
           {user && !loading && !error && pizzas.length > 0 && (
-            <div className="home-pizzas">
-              {pizzas.slice(0, 8).map((pizza) => (
-                <PizzaCard key={pizza._id} pizza={pizza} />
-              ))}
-            </div>
+            <>
+              <div className="home-pizzas">
+                {pizzas.slice(0, 4).map((pizza) => (
+                  <PizzaCard key={pizza._id} pizza={pizza} />
+                ))}
+              </div>
+              <div className="home-browse">
+                <button className="home-browse__link" type="button" onClick={() => navigate('/menu')}>
+                  Browse the full menu
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </>
           )}
+
+          <ActiveOrderStrip />
         </section>
       </main>
 

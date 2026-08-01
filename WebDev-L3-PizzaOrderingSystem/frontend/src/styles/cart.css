@@ -10,13 +10,12 @@
 .cart-main {
   flex: 1;
   width: 100%;
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 104px 24px 64px;
+  padding: 80px 20px 64px;
 }
 
 .cart-head {
-  margin-bottom: 28px;
+  max-width: 1200px;
+  margin: 0 auto 24px;
 }
 
 .cart-head__title {
@@ -38,6 +37,8 @@
   grid-template-columns: 1fr;
   gap: 32px;
   align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .cart-items {
@@ -51,7 +52,7 @@
   gap: 16px;
   background: var(--pn-surface, #fff);
   border: 1px solid var(--pn-outline-variant, var(--color-border));
-  border-radius: 1.5rem;
+  border-radius: var(--pn-radius-lg);
   padding: 16px;
 }
 
@@ -62,7 +63,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   background: rgba(255, 107, 0, 0.12);
   color: var(--pn-primary-container, var(--color-primary));
 }
@@ -150,11 +151,11 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
   background: rgba(220, 38, 38, 0.08);
   color: var(--color-accent, #dc2626);
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
+  transition: background 0.18s ease, transform 0.1s ease;
 }
 
 .cart-item__remove:hover {
@@ -168,11 +169,10 @@
 .cart-summary {
   background: var(--pn-surface, #fff);
   border: 1px solid var(--pn-outline-variant, var(--color-border));
-  border-radius: 1.5rem;
+  border-radius: var(--pn-radius-xl);
   padding: 24px;
   position: sticky;
-  top: 104px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+  top: 84px;
 }
 
 .cart-summary__title {
@@ -217,19 +217,16 @@
   align-items: center;
   gap: 14px;
   text-align: center;
-  padding: 72px 24px;
-  background: var(--pn-surface, #fff);
-  border-radius: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 48px 16px;
 }
 
 .cart-empty__icon {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: var(--radius-md);
   background: rgba(255, 107, 0, 0.12);
   color: var(--pn-primary-container, var(--color-primary));
 }

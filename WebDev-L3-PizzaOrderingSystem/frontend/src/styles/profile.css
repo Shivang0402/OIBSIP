@@ -125,7 +125,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+  box-shadow: var(--shadow-soft);
 }
 
 .profile-summary__info {
@@ -137,9 +137,7 @@
   align-items: center;
   gap: 6px;
   font-size: 0.8125rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
+  font-weight: 700;
   color: var(--color-primary);
   margin-bottom: 4px;
 }
