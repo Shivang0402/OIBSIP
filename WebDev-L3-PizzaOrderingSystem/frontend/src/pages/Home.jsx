@@ -1,24 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import {
-  ArrowRight,
-  Home as HomeIcon,
-  Pizza,
-  ReceiptText,
-  ShoppingCart,
-  User,
-} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Pizza } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
+import BottomNav from '../components/BottomNav';
+import Footer from '../components/Footer';
+import PizzaCard from '../components/PizzaCard';
 import { getUser } from '../services/session';
 import { getPizzas } from '../services/pizzaService';
 import '../styles/home.css';
 
 const HERO_IMAGE =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuDJemqz0bDciV5G9Ue22OeqlR8gnYIMy2VhCs0jFbUxO4tU6WaQJo9gB32Py9ZN04ziZC7p9ISpjwAF_dLW3RguYVpri4tg3LpwfFRiXSbArNqr7nKYqCNkFe9jSJeGciDz4-LsEHoZTRgxTNq7Rf4VEZom3UllGPoLBz5UFTjsUoSCMs0IDNEIEXP1f2cdr5X7mJvBQrE0Zl02npqCCia6hhUS4gwBsWUWIIibxYFPFXQbV9askco';
-
-function formatPrice(price) {
-  return `₹${Number(price).toFixed(2)}`;
-}
 
 function Home() {
   const navigate = useNavigate();
@@ -176,91 +168,15 @@ function Home() {
           {user && !loading && !error && pizzas.length > 0 && (
             <div className="home-pizzas">
               {pizzas.slice(0, 8).map((pizza) => (
-                <Link key={pizza._id} className="home-pizza" to={`/pizza/${pizza._id}`}>
-                  <div className="home-pizza__image-wrap">
-                    {pizza.image ? (
-                      <img className="home-pizza__image" src={pizza.image} alt={pizza.name} />
-                    ) : (
-                      <div className="home-pizza__image-placeholder" aria-hidden="true">
-                        <Pizza size={48} />
-                      </div>
-                    )}
-                    {!pizza.isAvailable && (
-                      <span className="home-pizza__unavailable">Unavailable</span>
-                    )}
-                  </div>
-                  <div className="home-pizza__body">
-                    <h3 className="home-pizza__name">{pizza.name}</h3>
-                    <p className="home-pizza__desc">{pizza.description}</p>
-                    <div className="home-pizza__row">
-                      <span className="home-pizza__price">{formatPrice(pizza.price)}</span>
-                      <span className="home-pizza__view">
-                        View
-                        <ArrowRight size={16} />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
+                <PizzaCard key={pizza._id} pizza={pizza} />
               ))}
             </div>
           )}
         </section>
       </main>
 
-      <footer className="home-footer">
-        <div className="home-footer__inner">
-          <div className="home-footer__brand">PizzaNova</div>
-          <p className="home-footer__copy">© 2024 PizzaNova. Modern Pizzas, Delivered Fast.</p>
-        </div>
-      </footer>
-
-      <nav className="home-bottom-nav" aria-label="Mobile">
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `home-bottom-nav__item${isActive ? ' home-bottom-nav__item--active' : ''}`
-          }
-        >
-          <HomeIcon size={20} />
-          <span>Home</span>
-        </NavLink>
-        <NavLink
-          to="/menu"
-          className={({ isActive }) =>
-            `home-bottom-nav__item${isActive ? ' home-bottom-nav__item--active' : ''}`
-          }
-        >
-          <Pizza size={20} />
-          <span>Menu</span>
-        </NavLink>
-        <NavLink
-          to="/cart"
-          className={({ isActive }) =>
-            `home-bottom-nav__item${isActive ? ' home-bottom-nav__item--active' : ''}`
-          }
-        >
-          <ShoppingCart size={20} />
-          <span>Cart</span>
-        </NavLink>
-        <NavLink
-          to="/orders"
-          className={({ isActive }) =>
-            `home-bottom-nav__item${isActive ? ' home-bottom-nav__item--active' : ''}`
-          }
-        >
-          <ReceiptText size={20} />
-          <span>Orders</span>
-        </NavLink>
-        <NavLink
-          to="/profile"
-          className={({ isActive }) =>
-            `home-bottom-nav__item${isActive ? ' home-bottom-nav__item--active' : ''}`
-          }
-        >
-          <User size={20} />
-          <span>Profile</span>
-        </NavLink>
-      </nav>
+      <Footer />
+      <BottomNav />
     </div>
   );
 }

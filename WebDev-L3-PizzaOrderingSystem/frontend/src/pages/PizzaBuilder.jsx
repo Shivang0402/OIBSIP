@@ -12,38 +12,61 @@ const BUILDER_STEPS = [
     key: 'base',
     title: 'Choose Your Base',
     single: true,
-    options: ['Thin Crust', 'Thick Crust', 'Cheese Burst', 'Stuffed Crust', 'Whole Wheat'],
+    options: [
+      { name: 'Thin Crust', price: 0 },
+      { name: 'Thick Crust', price: 20 },
+      { name: 'Cheese Burst', price: 60 },
+      { name: 'Stuffed Crust', price: 60 },
+      { name: 'Whole Wheat', price: 30 },
+    ],
   },
   {
     key: 'sauce',
     title: 'Pick a Sauce',
     single: true,
-    options: ['Classic Tomato', 'Spicy Tomato', 'BBQ', 'Pesto', 'White Garlic'],
+    options: [
+      { name: 'Classic Tomato', price: 0 },
+      { name: 'Spicy Tomato', price: 0 },
+      { name: 'BBQ', price: 20 },
+      { name: 'Pesto', price: 30 },
+      { name: 'White Garlic', price: 20 },
+    ],
   },
   {
     key: 'cheese',
     title: 'Select Cheese',
     single: true,
-    options: ['Mozzarella', 'Cheddar', 'Parmesan', 'Processed Cheese', 'Vegan Cheese'],
+    options: [
+      { name: 'Mozzarella', price: 0 },
+      { name: 'Cheddar', price: 30 },
+      { name: 'Parmesan', price: 40 },
+      { name: 'Processed Cheese', price: 20 },
+      { name: 'Vegan Cheese', price: 50 },
+    ],
   },
   {
     key: 'vegetables',
     title: 'Add Vegetables',
     single: false,
     options: [
-      'Onion',
-      'Tomato',
-      'Capsicum',
-      'Jalapeño',
-      'Mushroom',
-      'Sweet Corn',
-      'Black Olive',
-      'Green Olive',
-      'Paneer',
-      'Broccoli',
+      { name: 'Onion', price: 15 },
+      { name: 'Tomato', price: 15 },
+      { name: 'Capsicum', price: 15 },
+      { name: 'Jalapeño', price: 15 },
+      { name: 'Sweet Corn', price: 20 },
+      { name: 'Mushroom', price: 25 },
+      { name: 'Black Olive', price: 25 },
+      { name: 'Green Olive', price: 25 },
+      { name: 'Paneer', price: 40 },
+      { name: 'Broccoli', price: 15 },
     ],
   },
 ];
+
+function optionPrice(stepKey, name) {
+  const step = BUILDER_STEPS.find((s) => s.key === stepKey);
+  return step?.options.find((o) => o.name === name)?.price ?? 0;
+}
 
 function formatPrice(price) {
   return `₹${Number(price).toFixed(2)}`;
@@ -61,12 +84,19 @@ function PizzaBuilder() {
 
   const selections = { base, sauce, cheese, vegetables };
   const canAdd = Boolean(base && sauce && cheese);
+  const addonsPrice =
+    (base ? optionPrice('base', base) : 0) +
+    (sauce ? optionPrice('sauce', sauce) : 0) +
+    (cheese ? optionPrice('cheese', cheese) : 0) +
+    vegetables.reduce((sum, veg) => sum + optionPrice('vegetables', veg), 0);
+  const unitPrice = BASE_PRICE + addonsPrice;
+  const total = unitPrice * quantity;
 
   function selectOption(stepKey, option) {
     setAdded(false);
-    if (stepKey === 'base') setBase(option);
-    else if (stepKey === 'sauce') setSauce(option);
-    else if (stepKey === 'cheese') setCheese(option);
+    if (stepKey === 'base') setBase((current) => (current === option ? null : option));
+    else if (stepKey === 'sauce') setSauce((current) => (current === option ? null : option));
+    else if (stepKey === 'cheese') setCheese((current) => (current === option ? null : option));
     else {
       setVegetables((current) =>
         current.includes(option) ? current.filter((v) => v !== option) : [...current, option],
@@ -79,7 +109,7 @@ function PizzaBuilder() {
     addCartItem({
       id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       name: 'Custom Pizza',
-      price: BASE_PRICE,
+      price: unitPrice,
       quantity,
       image: '',
       customization: { base, sauce, cheese, vegetables },
@@ -119,18 +149,21 @@ function PizzaBuilder() {
                 </div>
                 <div className="builder-options">
                   {step.options.map((option) => {
-                    const selected = (selections[step.key] || []).includes(option);
+                    const selected = (selections[step.key] || []).includes(option.name);
                     return (
                       <button
-                        key={option}
+                        key={option.name}
                         type="button"
                         className={`builder-option${selected ? ' builder-option--selected' : ''}`}
-                        onClick={() => selectOption(step.key, option)}
+                        onClick={() => selectOption(step.key, option.name)}
                       >
                         <span className="builder-option__check">
                           <Check size={14} />
                         </span>
-                        {option}
+                        {option.name}
+                        {option.price > 0 && (
+                          <span className="builder-option__price">+{formatPrice(option.price)}</span>
+                        )}
                       </button>
                     );
                   })}
@@ -146,20 +179,38 @@ function PizzaBuilder() {
             <h2 className="builder-summary__title">Your Pizza</h2>
 
             <div className="builder-summary__rows">
-              <SummaryRow label="Base" value={base || 'Not selected'} missing={!base} />
-              <SummaryRow label="Sauce" value={sauce || 'Not selected'} missing={!sauce} />
-              <SummaryRow label="Cheese" value={cheese || 'Not selected'} missing={!cheese} />
+              <SummaryRow
+                label="Base"
+                value={base ? `${base} (+${formatPrice(optionPrice('base', base))})` : 'Not selected'}
+                missing={!base}
+              />
+              <SummaryRow
+                label="Sauce"
+                value={sauce ? `${sauce} (+${formatPrice(optionPrice('sauce', sauce))})` : 'Not selected'}
+                missing={!sauce}
+              />
+              <SummaryRow
+                label="Cheese"
+                value={cheese ? `${cheese} (+${formatPrice(optionPrice('cheese', cheese))})` : 'Not selected'}
+                missing={!cheese}
+              />
               <SummaryRow
                 label="Vegetables"
-                value={vegetables.length ? vegetables.join(', ') : 'None'}
+                value={
+                  vegetables.length
+                    ? vegetables
+                        .map((veg) => `${veg} (+${formatPrice(optionPrice('vegetables', veg))})`)
+                        .join(', ')
+                    : 'None'
+                }
               />
             </div>
 
             <div className="builder-summary__divider" />
 
             <div className="builder-summary__price-row">
-              <span className="builder-summary__label">Price</span>
-              <span className="builder-summary__price">{formatPrice(BASE_PRICE)}</span>
+              <span className="builder-summary__label">Price per pizza</span>
+              <span className="builder-summary__price">{formatPrice(unitPrice)}</span>
             </div>
             <div className="builder-summary__price-row">
               <span className="builder-summary__label">Quantity</span>
@@ -189,7 +240,7 @@ function PizzaBuilder() {
 
             <div className="builder-summary__total-row">
               <span>Total</span>
-              <strong>{formatPrice(BASE_PRICE * quantity)}</strong>
+              <strong>{formatPrice(total)}</strong>
             </div>
 
             {added && (
