@@ -77,7 +77,7 @@ function PizzaBuilder() {
   function handleAddToCart() {
     if (!canAdd) return;
     addCartItem({
-      id: crypto.randomUUID(),
+      id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       name: 'Custom Pizza',
       price: BASE_PRICE,
       quantity,
@@ -119,7 +119,7 @@ function PizzaBuilder() {
                 </div>
                 <div className="builder-options">
                   {step.options.map((option) => {
-                    const selected = selections[step.key].includes(option);
+                    const selected = (selections[step.key] || []).includes(option);
                     return (
                       <button
                         key={option}

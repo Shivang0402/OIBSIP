@@ -175,7 +175,7 @@ function Home() {
 
           {user && !loading && !error && pizzas.length > 0 && (
             <div className="home-pizzas">
-              {pizzas.slice(0, 4).map((pizza) => (
+              {pizzas.slice(0, 8).map((pizza) => (
                 <Link key={pizza._id} className="home-pizza" to={`/pizza/${pizza._id}`}>
                   <div className="home-pizza__image-wrap">
                     {pizza.image ? (
