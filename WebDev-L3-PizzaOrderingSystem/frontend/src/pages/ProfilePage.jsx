@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  CalendarDays,
+  KeyRound,
+  Lock,
+  LogOut,
+  Mail,
+  Phone,
+  Pizza,
+  ShieldCheck,
+  UserRound,
+  X,
+} from 'lucide-react';
 import Logo from '../components/branding/Logo';
 import AuthCard from '../components/auth/AuthCard';
 import InputField from '../components/auth/InputField';
@@ -18,6 +30,7 @@ function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [form, setForm] = useState({ currentPass: '', newPass: '', confirmNewPass: '' });
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
@@ -81,6 +94,20 @@ function ProfilePage() {
     navigate('/login');
   }
 
+  function openPasswordForm() {
+    setErrors({});
+    setFormError('');
+    setSuccess('');
+    setShowPasswordForm(true);
+  }
+
+  function closePasswordForm() {
+    setErrors({});
+    setFormError('');
+    setForm({ currentPass: '', newPass: '', confirmNewPass: '' });
+    setShowPasswordForm(false);
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
 
@@ -104,6 +131,7 @@ function ProfilePage() {
       });
       setForm({ currentPass: '', newPass: '', confirmNewPass: '' });
       setSuccess('Password changed successfully.');
+      setShowPasswordForm(false);
     } catch (error) {
       setFormError(error.message);
     } finally {
@@ -117,16 +145,23 @@ function ProfilePage() {
         <div className="profile-page__brand">
           <Logo variant="full" />
         </div>
-        <PrimaryButton type="button" onClick={handleSignOut}>
-          Sign Out
-        </PrimaryButton>
+        <nav className="profile-page__nav" aria-label="Profile navigation">
+          <span className="profile-page__nav-item profile-page__nav-item--active">
+            <UserRound size={16} />
+            My Profile
+          </span>
+          <PrimaryButton type="button" onClick={handleSignOut}>
+            <LogOut size={16} />
+            Sign Out
+          </PrimaryButton>
+        </nav>
       </header>
 
       <main className="profile-page__content">
         {loading && (
           <div className="profile-page__state">
             <div className="profile-page__spinner" aria-hidden="true" />
-            <p>Loading your profile&hellip;</p>
+            <p>Baking your profile&hellip;</p>
           </div>
         )}
 
@@ -146,6 +181,10 @@ function ProfilePage() {
                 {getInitials(user.name)}
               </div>
               <div className="profile-summary__info">
+                <p className="profile-summary__greeting">
+                  <Pizza size={14} />
+                  Welcome back
+                </p>
                 <h1 className="profile-summary__name">{user.name}</h1>
                 <p className="profile-summary__email">{user.email}</p>
                 <div className="profile-summary__badges">
@@ -153,7 +192,10 @@ function ProfilePage() {
                     {user.role === 'admin' ? 'Admin' : 'User'}
                   </span>
                   {user.isVerified && (
-                    <span className="profile-badge profile-badge--success">Email Verified</span>
+                    <span className="profile-badge profile-badge--success">
+                      <ShieldCheck size={12} />
+                      Email Verified
+                    </span>
                   )}
                 </div>
               </div>
@@ -162,12 +204,24 @@ function ProfilePage() {
             <div className="profile-grid">
               <AuthCard title="Profile Details" subtitle="Your account information">
                 <div className="profile-details">
-                  <ProfileRow label="Full Name" value={user.name} />
-                  <ProfileRow label="Email" value={user.email} />
-                  <ProfileRow label="Phone" value={user.phone || '—'} />
-                  <ProfileRow label="Role" value={user.role === 'admin' ? 'Admin' : 'User'} />
-                  <ProfileRow label="Email Verified" value={user.isVerified ? 'Yes' : 'No'} />
-                  <ProfileRow label="Member Since" value={formatDate(user.createdAt)} />
+                  <ProfileRow icon={UserRound} label="Full Name" value={user.name} />
+                  <ProfileRow icon={Mail} label="Email" value={user.email} />
+                  <ProfileRow icon={Phone} label="Phone" value={user.phone || '—'} />
+                  <ProfileRow
+                    icon={ShieldCheck}
+                    label="Role"
+                    value={user.role === 'admin' ? 'Admin' : 'User'}
+                  />
+                  <ProfileRow
+                    icon={ShieldCheck}
+                    label="Email Verified"
+                    value={user.isVerified ? 'Yes' : 'No'}
+                  />
+                  <ProfileRow
+                    icon={CalendarDays}
+                    label="Member Since"
+                    value={formatDate(user.createdAt)}
+                  />
                 </div>
               </AuthCard>
 
@@ -176,57 +230,102 @@ function ProfilePage() {
                 subtitle="Use a strong password you don't use elsewhere"
               >
                 {success && <FormMessage type="success">{success}</FormMessage>}
-                {formError && <FormMessage type="error">{formError}</FormMessage>}
 
-                <form className="auth-form" onSubmit={handleSubmit} noValidate>
-                  <InputField
-                    id="current-pass"
-                    label="Current Password"
-                    type="password"
-                    name="currentPass"
-                    placeholder="Enter your current password"
-                    value={form.currentPass}
-                    onChange={handleChange}
-                    error={errors.currentPass}
-                  />
-                  <InputField
-                    id="new-pass"
-                    label="New Password"
-                    type="password"
-                    name="newPass"
-                    placeholder="At least 6 characters"
-                    value={form.newPass}
-                    onChange={handleChange}
-                    error={errors.newPass}
-                  />
-                  <InputField
-                    id="confirm-new-pass"
-                    label="Confirm New Password"
-                    type="password"
-                    name="confirmNewPass"
-                    placeholder="Re-enter your new password"
-                    value={form.confirmNewPass}
-                    onChange={handleChange}
-                    error={errors.confirmNewPass}
-                  />
+                {!showPasswordForm ? (
+                  <div className="profile-password__empty">
+                    <div className="profile-password__icon" aria-hidden="true">
+                      <Lock size={22} />
+                    </div>
+                    <p>
+                      Keep your account secure by updating your password regularly. Tap below to
+                      set a new one.
+                    </p>
+                    <PrimaryButton type="button" onClick={openPasswordForm}>
+                      <KeyRound size={16} />
+                      Change Password
+                    </PrimaryButton>
+                  </div>
+                ) : (
+                  <div className="profile-password__form-wrap">
+                    {formError && <FormMessage type="error">{formError}</FormMessage>}
 
-                  <PrimaryButton type="submit" loading={saving}>
-                    Update Password
-                  </PrimaryButton>
-                </form>
+                    <form className="auth-form" onSubmit={handleSubmit} noValidate>
+                      <InputField
+                        id="current-pass"
+                        label="Current Password"
+                        type="password"
+                        name="currentPass"
+                        placeholder="Enter your current password"
+                        value={form.currentPass}
+                        onChange={handleChange}
+                        error={errors.currentPass}
+                      />
+                      <InputField
+                        id="new-pass"
+                        label="New Password"
+                        type="password"
+                        name="newPass"
+                        placeholder="At least 6 characters"
+                        value={form.newPass}
+                        onChange={handleChange}
+                        error={errors.newPass}
+                      />
+                      <InputField
+                        id="confirm-new-pass"
+                        label="Confirm New Password"
+                        type="password"
+                        name="confirmNewPass"
+                        placeholder="Re-enter your new password"
+                        value={form.confirmNewPass}
+                        onChange={handleChange}
+                        error={errors.confirmNewPass}
+                      />
+
+                      <div className="profile-password__actions">
+                        <PrimaryButton type="submit" loading={saving}>
+                          Update Password
+                        </PrimaryButton>
+                        <button
+                          type="button"
+                          className="profile-password__cancel"
+                          onClick={closePasswordForm}
+                        >
+                          <X size={16} />
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </AuthCard>
             </div>
           </>
         )}
       </main>
+
+      <footer className="profile-page__footer">
+        <div className="profile-page__footer-inner">
+          <span className="profile-page__footer-brand">
+            <Pizza size={20} />
+            PizzaNova
+          </span>
+          <p className="profile-page__footer-tagline">Hot &amp; fresh, delivered fast.</p>
+          <p className="profile-page__footer-copy">
+            &copy; {new Date().getFullYear()} PizzaNova. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
 
-function ProfileRow({ label, value }) {
+function ProfileRow({ icon: Icon, label, value }) {
   return (
     <div className="profile-row">
-      <span className="profile-row__label">{label}</span>
+      <span className="profile-row__label">
+        {Icon && <Icon size={15} className="profile-row__icon" />}
+        {label}
+      </span>
       <span className="profile-row__value">{value}</span>
     </div>
   );
