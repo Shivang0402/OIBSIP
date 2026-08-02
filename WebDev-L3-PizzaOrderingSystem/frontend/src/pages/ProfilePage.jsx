@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import Logo from '../components/branding/Logo';
 import AuthCard from '../components/auth/AuthCard';
+import BackButton from '../components/BackButton';
 import InputField from '../components/auth/InputField';
 import PrimaryButton from '../components/auth/PrimaryButton';
 import FormMessage from '../components/auth/FormMessage';
@@ -158,6 +159,8 @@ function ProfilePage() {
       </header>
 
       <main className="profile-page__content">
+        <BackButton />
+
         {loading && (
           <div className="profile-page__state">
             <div className="profile-page__spinner" aria-hidden="true" />

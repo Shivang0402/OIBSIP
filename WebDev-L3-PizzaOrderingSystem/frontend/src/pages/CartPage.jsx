@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Minus, Pizza, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
+import BackButton from '../components/BackButton';
 import { getCart, updateCartQuantity, removeCartItem } from '../services/cartService';
 import '../styles/cart.css';
 
@@ -30,6 +31,7 @@ function CartPage() {
       <div className="cart-page">
         <AppHeader />
         <main className="cart-main">
+          <BackButton />
           <div className="cart-empty">
             <div className="cart-empty__icon" aria-hidden="true">
               <ShoppingCart size={28} />
@@ -62,6 +64,8 @@ function CartPage() {
       <AppHeader />
 
       <main className="cart-main">
+        <BackButton />
+
         <div className="cart-head">
           <h1 className="cart-head__title">Your Cart</h1>
           <p className="cart-head__subtitle">{items.length} item{items.length > 1 ? 's' : ''}</p>

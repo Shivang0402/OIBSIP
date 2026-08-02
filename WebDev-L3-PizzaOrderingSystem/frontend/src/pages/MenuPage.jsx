@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Pizza } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
+import BackButton from '../components/BackButton';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
 import PizzaCard from '../components/PizzaCard';
@@ -46,6 +47,8 @@ function MenuPage() {
       <AppHeader />
 
       <main className="menu-main">
+        <BackButton />
+
         <section className="menu-head">
           <h1 className="menu-head__title">All Pizzas</h1>
           <p className="menu-head__subtitle">
@@ -104,9 +107,6 @@ function MenuPage() {
 
           {getUser() && !loading && !error && pizzas.length > 0 && (
             <>
-              <p className="menu-count">
-                {pizzas.length} pizza{pizzas.length > 1 ? 's' : ''} available
-              </p>
               <div className="home-pizzas">
                 {pizzas.map((pizza) => (
                   <PizzaCard key={pizza._id} pizza={pizza} />

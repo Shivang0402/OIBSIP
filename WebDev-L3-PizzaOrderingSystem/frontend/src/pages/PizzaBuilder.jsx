@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ChevronLeft, Minus, Pizza, Plus, ShoppingCart } from 'lucide-react';
+import { Check, Minus, Pizza, Plus, ShoppingCart } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
+import BackButton from '../components/BackButton';
 import { addCartItem } from '../services/cartService';
 import '../styles/builder.css';
 
@@ -122,10 +123,7 @@ function PizzaBuilder() {
       <AppHeader />
 
       <main className="builder-main">
-        <button className="builder-back" type="button" onClick={() => navigate('/')}>
-          <ChevronLeft size={16} />
-          Back to Home
-        </button>
+        <BackButton />
 
         <div className="builder-head">
           <h1 className="builder-head__title">Build Your Own Pizza</h1>

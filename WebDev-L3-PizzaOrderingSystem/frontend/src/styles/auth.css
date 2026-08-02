@@ -40,6 +40,11 @@
   gap: 1.25rem;
 }
 
+.auth-layout__content .back-button-wrap {
+  max-width: none;
+  margin: 0;
+}
+
 .auth-layout__brand-panel {
   display: flex;
   justify-content: center;

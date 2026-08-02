@@ -38,13 +38,6 @@
   align-items: stretch;
 }
 
-.menu-count {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--pn-on-surface-variant);
-  margin: 0 0 14px;
-}
-
 .menu-cta {
   align-self: center;
   margin-top: 24px;

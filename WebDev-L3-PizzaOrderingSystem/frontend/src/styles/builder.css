@@ -13,28 +13,8 @@
   padding: 80px 20px 64px;
 }
 
-.builder-back {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
+.builder-main .back-button-wrap {
   max-width: 1080px;
-  margin: 0 auto 20px;
-  border: none;
-  background: none;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--pn-on-surface-variant, var(--color-muted));
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
-  transition: color 0.2s ease, background 0.2s ease;
-}
-
-.builder-back:hover {
-  color: var(--pn-primary, var(--color-primary));
-  background: rgba(255, 107, 0, 0.08);
 }
 
 .builder-head {
