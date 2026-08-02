@@ -167,6 +167,7 @@ function AdminPage() {
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const [savingId, setSavingId] = useState('');
+  const [focusStockId, setFocusStockId] = useState(null);
 
   const [modal, setModal] = useState(null);
   const [pizzaForm, setPizzaForm] = useState({ name: '', description: '', price: '', image: '' });
@@ -380,6 +381,22 @@ function AdminPage() {
     }
   }
 
+  function goRestock(item) {
+    setInventoryFilter(item.category || 'All');
+    setInventoryEdits((prev) => ({
+      ...prev,
+      [item._id]: { ...prev[item._id], stock: String(item.stock) },
+    }));
+    setFocusStockId(item._id);
+    setTab('inventory');
+    requestAnimationFrame(() => {
+      document.getElementById(`inventory-row-${item._id}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+  }
+
   const filteredOrders = useMemo(() => {
     const query = orderQuery.trim().toLowerCase();
     return orders.filter((order) => {
@@ -575,7 +592,12 @@ function AdminPage() {
 
                     <div className="admin-card">
                       <div className="admin-card__head">
-                        <h2>Stock watch</h2>
+                        <h2>
+                          Low stock alerts
+                          {lowStockItems.length > 0 && (
+                            <span className="admin-card__count">{lowStockItems.length}</span>
+                          )}
+                        </h2>
                         <button
                           type="button"
                           className="admin-card__link"
@@ -588,16 +610,30 @@ function AdminPage() {
                         <EmptyState icon={<Package size={22} />} text="All items well stocked" />
                       ) : (
                         <div className="admin-list">
-                          {lowStockItems.slice(0, 5).map((item) => (
-                            <div key={item._id} className="admin-listrow">
-                              <div className="admin-listrow__main">
+                          {lowStockItems.map((item) => (
+                            <div key={item._id} className="admin-alertrow">
+                              <div className="admin-alertrow__main">
                                 <strong>{item.name}</strong>
                                 <span>
-                                  {item.stock} {item.unit} left
+                                  {item.stock} {item.unit} left · threshold {item.threshold}
                                 </span>
                               </div>
-                              <div className="admin-listrow__bar">
+                              <div className="admin-alertrow__side">
+                                {item.lowStockAlertSent && (
+                                  <span className="admin-chip admin-chip--alerted">
+                                    Alert sent
+                                  </span>
+                                )}
                                 <StockBar stock={item.stock} threshold={item.threshold} />
+                                <button
+                                  type="button"
+                                  className="admin-btn admin-btn--small"
+                                  title="Restock — set the amount in inventory"
+                                  onClick={() => goRestock(item)}
+                                >
+                                  <Plus size={13} />
+                                  Restock
+                                </button>
                               </div>
                             </div>
                           ))}
@@ -831,7 +867,7 @@ function AdminPage() {
                             const busy = savingId === item._id;
                             const low = item.stock <= item.threshold;
                             return (
-                              <tr key={item._id}>
+                              <tr key={item._id} id={`inventory-row-${item._id}`}>
                                 <td data-label="Item">
                                   <div className="admin-cell__item">
                                     <strong>{item.name}</strong>
@@ -851,6 +887,11 @@ function AdminPage() {
                                         min="0"
                                         step="1"
                                         title="Stock"
+                                        autoFocus={focusStockId === item._id}
+                                        onFocus={(e) => {
+                                          setFocusStockId(null);
+                                          e.target.select();
+                                        }}
                                         value={edit?.stock !== undefined ? edit.stock : item.stock}
                                         onChange={(e) =>
                                           setInventoryEdits({
@@ -875,6 +916,11 @@ function AdminPage() {
                                     </div>
                                     <StockBar stock={item.stock} threshold={item.threshold} />
                                     {low && <span className="admin-cell__low">Low</span>}
+                                    {item.lowStockAlertSent && (
+                                      <span className="admin-chip admin-chip--alerted">
+                                        Alert sent
+                                      </span>
+                                    )}
                                   </div>
                                 </td>
                                 <td data-label="Availability">

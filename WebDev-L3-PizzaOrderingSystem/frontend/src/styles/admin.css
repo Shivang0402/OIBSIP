@@ -8,7 +8,7 @@
 .admin-shell {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 32px 24px 72px;
+  padding: 80px 24px 72px;
   display: grid;
   grid-template-columns: 236px minmax(0, 1fr);
   gap: 28px;
@@ -387,6 +387,23 @@
   font-size: 14.5px;
   font-weight: 800;
   color: var(--color-charcoal, #1c1917);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-card__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .admin-card__link {
@@ -462,6 +479,51 @@
 .admin-listrow__bar {
   width: 120px;
   flex-shrink: 0;
+}
+
+/* ---------- Low stock alert rows ---------- */
+
+.admin-alertrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid #f6f1ec;
+}
+
+.admin-alertrow:first-child {
+  border-top: none;
+}
+
+.admin-alertrow__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-alertrow__main strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-charcoal, #1c1917);
+  text-transform: capitalize;
+}
+
+.admin-alertrow__main span {
+  font-size: 11.5px;
+  color: var(--color-muted, #78716c);
+}
+
+.admin-alertrow__side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.admin-alertrow__side .admin-stockbar {
+  width: 90px;
 }
 
 /* ---------- Pills ---------- */
@@ -607,6 +669,18 @@
 .admin-chip--static:hover {
   border-color: #eee3d9;
   color: #78716c;
+}
+
+.admin-chip--alerted {
+  border-color: #fcd9a8;
+  background: #fff7ed;
+  color: #c2410c;
+  cursor: default;
+}
+
+.admin-chip--alerted:hover {
+  border-color: #fcd9a8;
+  color: #c2410c;
 }
 
 /* ---------- Tables ---------- */
@@ -895,6 +969,14 @@
   border-color: #e2d3c4;
   box-shadow: none;
   transform: none;
+}
+
+.admin-btn--small {
+  height: 32px;
+  padding: 0 13px;
+  border-radius: 9px;
+  font-size: 12px;
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.24);
 }
 
 .admin-iconbtn {
@@ -1199,7 +1281,7 @@
 @media (max-width: 1080px) {
   .admin-shell {
     grid-template-columns: 1fr;
-    padding-top: 20px;
+    padding-top: 80px;
   }
 
   .admin-sidebar {
@@ -1223,7 +1305,7 @@
 
 @media (max-width: 720px) {
   .admin-shell {
-    padding: 16px 14px 64px;
+    padding: 76px 14px 64px;
   }
 
   .admin-content__head {
@@ -1303,6 +1385,20 @@
 
   .admin-stockinputs input {
     width: 52px;
+  }
+
+  .admin-alertrow {
+    flex-wrap: wrap;
+  }
+
+  .admin-alertrow__side {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .admin-alertrow__side .admin-stockbar {
+    flex: 1;
+    min-width: 60px;
   }
 
   .admin-toast {

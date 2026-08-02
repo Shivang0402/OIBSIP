@@ -5,11 +5,13 @@ const bcrypt = require("bcrypt");
 
 const run = async () => {
   const [email, password, phoneArg, name = "Admin"] = process.argv.slice(2);
+  const clean = process.argv.includes("--clean");
 
   if (!email || !password) {
     console.log(
-      "Usage: node src/seed/createAdmin.js <email> <password> [phone] [name]",
+      "Usage: node src/seed/createAdmin.js <email> <password> [phone] [name] [--clean]",
     );
+    console.log("--clean deletes every other admin account.");
     process.exit(1);
   }
 
@@ -37,6 +39,14 @@ const run = async () => {
   console.log(
     `Admin ready: ${user.email} (role: ${user.role}, verified: ${user.isVerified})`,
   );
+
+  if (clean) {
+    const result = await User.deleteMany({
+      role: "admin",
+      email: { $ne: email },
+    });
+    console.log(`Removed ${result.deletedCount} other admin account(s).`);
+  }
 
   const mongoose = require("mongoose");
   await mongoose.disconnect();

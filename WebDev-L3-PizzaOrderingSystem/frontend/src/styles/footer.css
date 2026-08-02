@@ -93,12 +93,11 @@
   font-size: 13.5px;
   color: #a8a29e;
   text-decoration: none;
-  transition: color 0.18s ease, transform 0.18s ease;
+  transition: color 0.18s ease;
 }
 
 .footer-link:hover {
   color: #fdba74;
-  transform: translateX(3px);
 }
 
 .footer__list--contact li {
