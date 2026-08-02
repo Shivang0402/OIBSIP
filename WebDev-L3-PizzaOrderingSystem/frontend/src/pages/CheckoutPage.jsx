@@ -1,12 +1,27 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Loader2, MapPin, Pizza, ShoppingCart } from 'lucide-react';
+import {
+  ArrowRight,
+  BadgeCheck,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  MapPin,
+  Pizza,
+  ShoppingCart,
+  XCircle,
+} from 'lucide-react';
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
 import { getCart, clearCart } from '../services/cartService';
-import { placeOrder } from '../services/orderService';
+import { placeOrder, verifyPayment } from '../services/orderService';
+import {
+  openRazorpayCheckout,
+  PAYMENT_DISMISSED,
+} from '../services/paymentService';
+import { getUser } from '../services/session';
 import { isRequired } from '../utils/validators';
 import '../styles/checkout.css';
 
@@ -30,7 +45,9 @@ function CheckoutPage() {
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
   const [placing, setPlacing] = useState(false);
-  const [placedOrders, setPlacedOrders] = useState(null);
+  const [placedOrder, setPlacedOrder] = useState(null);
+  const [paymentState, setPaymentState] = useState('idle');
+  const [paymentError, setPaymentError] = useState('');
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -81,24 +98,68 @@ function CheckoutPage() {
       });
 
       const data = await placeOrder({ items: orderItems, deliveryAddress });
-
-      clearCart();
-      setPlacedOrders({
+      const order = {
         orderId: data.order?._id,
         orderNumber: data.order?.orderNumber,
         razorpayOrderId: data.razorpayOrderId,
         amount: data.amount || data.order?.totalPrice * 100,
         currency: data.currency || 'INR',
-      });
+        key: data.key,
+      };
+
+      clearCart();
+      setPlacedOrder(order);
+      await startPayment(order);
     } catch (error) {
       setFormError(error.message || 'Unable to place your order. Please try again.');
-      setPlacedOrders(null);
+      setPlacedOrder(null);
+      setPaymentState('idle');
     } finally {
       setPlacing(false);
     }
   }
 
-  if (items.length === 0 && !placedOrders) {
+  async function startPayment(order = placedOrder) {
+    if (!order) return;
+    setPaymentState('paying');
+    setPaymentError('');
+
+    const user = getUser();
+    try {
+      const response = await openRazorpayCheckout({
+        key: order.key,
+        amount: order.amount,
+        currency: order.currency,
+        orderId: order.razorpayOrderId,
+        name: 'PizzaNova',
+        description: `Order ${order.orderNumber}`,
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+        },
+      });
+
+      await verifyPayment({
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_signature: response.razorpay_signature,
+      });
+
+      setPaymentState('paid');
+    } catch (error) {
+      if (error.message === PAYMENT_DISMISSED) setPaymentState('pending');
+      else {
+        setPaymentError(
+          error.description ||
+            error.message ||
+            'The payment could not be completed. Please try again.',
+        );
+        setPaymentState('failed');
+      }
+    }
+  }
+
+  if (items.length === 0 && !placedOrder) {
     return (
       <div className="checkout-page">
         <AppHeader />
@@ -124,7 +185,28 @@ function CheckoutPage() {
     );
   }
 
-  if (placedOrders) {
+  if (placedOrder) {
+    const paid = paymentState === 'paid';
+    const paying = paymentState === 'paying';
+    const pending = paymentState === 'pending';
+    const failed = paymentState === 'failed';
+
+    const Icon = paid ? CheckCircle2 : paying ? Loader2 : failed ? XCircle : Clock;
+    const title = paid
+      ? 'Payment successful!'
+      : paying
+        ? 'Waiting for payment…'
+        : failed
+          ? 'Payment failed'
+          : 'Payment pending';
+    const text = paid
+      ? 'Your order has been confirmed. Track it live from your orders.'
+      : paying
+        ? 'Complete the payment in the popup window to confirm your order.'
+        : failed
+          ? paymentError || 'Your order is saved, but the payment did not go through. Try again below.'
+          : 'Your order is saved. Complete the payment to confirm it.';
+
     return (
       <div className="checkout-page">
         <AppHeader />
@@ -132,50 +214,73 @@ function CheckoutPage() {
           <BackButton />
 
           <section className="checkout-success">
-            <div className="checkout-success__icon" aria-hidden="true">
-              <CheckCircle2 size={44} />
+            <div className={`checkout-success__icon${paying ? ' checkout-success__icon--spin' : ''}`} aria-hidden="true">
+              <Icon size={44} />
             </div>
-            <h1 className="checkout-success__title">Order placed!</h1>
-            <p className="checkout-success__text">
-              Your order has been received. Payment is pending — the payment step comes next.
-            </p>
+            <h1 className="checkout-success__title">{title}</h1>
+            <p className="checkout-success__text">{text}</p>
 
             <div className="checkout-success__orders">
               <div className="checkout-success__row">
                 <span className="checkout-success__label">
-                  Order #{placedOrders.orderNumber}
+                  Order #{placedOrder.orderNumber}
                 </span>
                 <span className="checkout-success__value">
-                  {formatPrice(Number(placedOrders.amount) / 100)}
+                  {formatPrice(Number(placedOrder.amount) / 100)}
                 </span>
-                <span className="checkout-success__pending">Pending</span>
+                {paid ? (
+                  <span className="checkout-success__paid">
+                    <BadgeCheck size={12} />
+                    Paid
+                  </span>
+                ) : (
+                  <span className="checkout-success__pending">Pending</span>
+                )}
               </div>
               <div className="checkout-success__total">
-                <span>Total payable</span>
-                <strong>{formatPrice(Number(placedOrders.amount) / 100)}</strong>
+                <span>{paid ? 'Amount paid' : 'Total payable'}</span>
+                <strong>{formatPrice(Number(placedOrder.amount) / 100)}</strong>
               </div>
             </div>
 
-            <p className="checkout-success__note">
-              Razorpay payment UI will be added here next.
-            </p>
-
             <div className="checkout-success__actions">
-              <button
-                className="btn btn--primary"
-                type="button"
-                onClick={() => navigate('/orders')}
-              >
-                View Orders
-                <ArrowRight size={18} />
-              </button>
-              <button
-                className="btn btn--secondary"
-                type="button"
-                onClick={() => navigate('/')}
-              >
-                Back to Home
-              </button>
+              {paid ? (
+                <>
+                  <button
+                    className="btn btn--primary"
+                    type="button"
+                    onClick={() => navigate('/orders')}
+                  >
+                    View Orders
+                    <ArrowRight size={18} />
+                  </button>
+                  <button
+                    className="btn btn--secondary"
+                    type="button"
+                    onClick={() => navigate('/')}
+                  >
+                    Back to Home
+                  </button>
+                </>
+              ) : pending || failed ? (
+                <>
+                  <button
+                    className="btn btn--primary"
+                    type="button"
+                    onClick={() => startPayment()}
+                  >
+                    {failed ? 'Retry Payment' : 'Pay Now'}
+                    <ArrowRight size={18} />
+                  </button>
+                  <button
+                    className="btn btn--secondary"
+                    type="button"
+                    onClick={() => navigate('/orders')}
+                  >
+                    View Orders
+                  </button>
+                </>
+              ) : null}
             </div>
           </section>
         </main>

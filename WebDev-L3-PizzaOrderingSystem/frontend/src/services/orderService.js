@@ -11,3 +11,7 @@ export function getOrderById(id) {
 export function placeOrder(payload) {
   return api.post('/order/placeOrder', payload);
 }
+
+export function verifyPayment(payload) {
+  return api.post('/order/verifyPayment', payload);
+}
