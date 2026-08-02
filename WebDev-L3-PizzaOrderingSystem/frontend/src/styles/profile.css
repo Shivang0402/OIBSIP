@@ -575,71 +575,9 @@
   color: var(--color-accent);
 }
 
-.profile-page__footer {
-  flex-shrink: 0;
-  height: clamp(72px, 12vh, 100px);
-  display: flex;
-  align-items: center;
-  background: var(--color-charcoal);
-  color: rgba(255, 255, 255, 0.85);
-  border-top: 3px solid var(--color-primary);
-}
-
-.profile-page__footer-inner {
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 clamp(16px, 4vw, 32px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.profile-page__footer-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--color-white);
-}
-
-.profile-page__footer-brand svg {
-  color: var(--color-primary);
-}
-
-.profile-page__footer-tagline {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.profile-page__footer-copy {
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.55);
-  text-align: right;
-}
-
 @media (max-width: 760px) {
   .profile-grid {
     grid-template-columns: 1fr;
-  }
-
-  .profile-page__footer {
-    height: auto;
-    min-height: 88px;
-    padding: 20px 0;
-  }
-
-  .profile-page__footer-inner {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .profile-page__footer-copy {
-    text-align: center;
   }
 }
 

@@ -470,40 +470,6 @@
   transform: translateX(3px);
 }
 
-/* ---------- Footer ---------- */
-
-.home-footer {
-  background: var(--pn-surface);
-  border-top: 1px solid var(--pn-outline-variant);
-  padding: 28px 0;
-  margin-top: auto;
-}
-
-.home-footer__inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.home-footer__brand {
-  font-family: var(--font-heading);
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--pn-primary-container);
-}
-
-.home-footer__copy {
-  font-size: 13.5px;
-  color: var(--pn-on-surface-variant);
-  text-align: center;
-  line-height: 1.5;
-}
-
 /* ---------- Mobile bottom nav ---------- */
 
 .home-bottom-nav {

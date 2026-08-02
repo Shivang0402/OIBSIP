@@ -24,6 +24,7 @@ import InputField from '../components/auth/InputField';
 import PrimaryButton from '../components/auth/PrimaryButton';
 import FormMessage from '../components/auth/FormMessage';
 import BackButton from '../components/BackButton';
+import Footer from '../components/Footer';
 import { getProfile, changePassword, updateProfile } from '../services/authService';
 import { getOrders } from '../services/orderService';
 import { getOrderItems, getOrderNumber } from '../utils/orderItems';
@@ -533,18 +534,7 @@ function ProfilePage() {
         )}
       </main>
 
-      <footer className="profile-page__footer">
-        <div className="profile-page__footer-inner">
-          <span className="profile-page__footer-brand">
-            <Pizza size={20} />
-            PizzaNova
-          </span>
-          <p className="profile-page__footer-tagline">Hot &amp; fresh, delivered fast.</p>
-          <p className="profile-page__footer-copy">
-            &copy; {new Date().getFullYear()} PizzaNova. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
