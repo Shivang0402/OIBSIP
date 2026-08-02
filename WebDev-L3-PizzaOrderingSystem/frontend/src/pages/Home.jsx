@@ -11,8 +11,12 @@ import { getUser } from '../services/session';
 import { getPizzas } from '../services/pizzaService';
 import '../styles/home.css';
 
-const HERO_IMAGE =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuDJemqz0bDciV5G9Ue22OeqlR8gnYIMy2VhCs0jFbUxO4tU6WaQJo9gB32Py9ZN04ziZC7p9ISpjwAF_dLW3RguYVpri4tg3LpwfFRiXSbArNqr7nKYqCNkFe9jSJeGciDz4-LsEHoZTRgxTNq7Rf4VEZom3UllGPoLBz5UFTjsUoSCMs0IDNEIEXP1f2cdr5X7mJvBQrE0Zl02npqCCia6hhUS4gwBsWUWIIibxYFPFXQbV9askco';
+const HERO_IMAGES = [
+  '/uploads/hero/hero-1.jpg',
+  '/uploads/hero/hero-2.jpg',
+  '/uploads/hero/hero-3.jpg',
+  '/uploads/hero/hero-4.jpg',
+];
 
 function Home() {
   const navigate = useNavigate();
@@ -21,6 +25,14 @@ function Home() {
   const [pizzas, setPizzas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIndex((current) => (current + 1) % HERO_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,31 +62,28 @@ function Home() {
     <div className="home-page">
       <AppHeader />
       <main className="home-main">
-        <section className="home-greeting">
-          {user ? (
-            <>
-              <p className="home-greeting__eyebrow">Welcome back</p>
-              <h2 className="home-greeting__title">{user.name.split(' ')[0]}</h2>
-              <p className="home-greeting__hint">
-                Hungry? Your favorite pizzas are waiting for you.
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="home-greeting__eyebrow">Welcome to</p>
-              <h2 className="home-greeting__title">PizzaNova</h2>
-              <p className="home-greeting__hint">
-                Sign in to browse the menu and place your first order.
-              </p>
-            </>
-          )}
-        </section>
-
         <section className="home-hero">
-          <div className="home-hero__text">
+          <div className="home-hero__bg" aria-hidden="true">
+            {HERO_IMAGES.map((src, index) => (
+              <img
+                key={src}
+                className={`home-hero__bg-image${index === heroIndex ? ' home-hero__bg-image--active' : ''}`}
+                src={src}
+                alt=""
+              />
+            ))}
+            <div className="home-hero__overlay" />
+          </div>
+          <div className="home-hero__content">
+            <div className="home-hero__greeting">
+              <p className="home-hero__greeting-eyebrow">{user ? 'Welcome back' : 'Welcome to'}</p>
+              <h2 className="home-hero__greeting-name">
+                {user ? user.name.split(' ')[0] : 'PizzaNova'}
+              </h2>
+            </div>
             <span className="home-hero__chip">Freshly baked today</span>
             <h1 className="home-hero__title">
-              The Future of <span>Pizza</span> is Here.
+              Handcrafted <span>Pizza</span>. Delivered Fresh.
             </h1>
             <p className="home-hero__subtitle">
               Experience artisanal flavors delivered with tech-speed precision. Your perfect slice
@@ -86,13 +95,6 @@ function Home() {
                 <ArrowRight size={18} />
               </button>
             </div>
-          </div>
-          <div className="home-hero__image-wrap">
-            <img
-              className="home-hero__image"
-              src={HERO_IMAGE}
-              alt="Gourmet pepperoni pizza with melting mozzarella and fresh basil"
-            />
           </div>
         </section>
 
