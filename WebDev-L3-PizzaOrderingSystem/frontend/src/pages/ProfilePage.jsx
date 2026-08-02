@@ -96,6 +96,7 @@ function ProfilePage() {
           id: data.user._id || data.user.id,
           name: data.user.name,
           email: data.user.email,
+          role: data.user.role,
         });
       } catch (error) {
         if (cancelled) return;
@@ -344,6 +345,16 @@ function ProfilePage() {
                     </span>
                   )}
                 </div>
+                {user.role === 'admin' && (
+                  <button
+                    className="profile-admin-link"
+                    type="button"
+                    onClick={() => navigate('/admin')}
+                  >
+                    <ShieldCheck size={15} />
+                    Open Admin Dashboard
+                  </button>
+                )}
               </div>
             </section>
 

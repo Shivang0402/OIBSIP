@@ -63,6 +63,16 @@ function AppHeader() {
             >
               Track Order
             </NavLink>
+            {user?.role === 'admin' && (
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  `app-header__link app-header__link--admin${isActive ? ' app-header__link--active' : ''}`
+                }
+              >
+                Admin
+              </NavLink>
+            )}
           </nav>
         </div>
 

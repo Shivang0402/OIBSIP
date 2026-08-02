@@ -44,7 +44,7 @@ function Login() {
     try {
       const data = await loginUser({ email: form.email, password: form.password });
       saveToken(data.token);
-      saveUser({ id: data.data.id, name: data.data.name, email: data.data.email });
+      saveUser({ id: data.data.id, name: data.data.name, email: data.data.email, role: data.data.role });
       navigate('/');
     } catch (error) {
       setFormError(error.message);

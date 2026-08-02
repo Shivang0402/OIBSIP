@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import Home from './pages/Home';
 import MenuPage from './pages/MenuPage';
 import PizzaDetailPage from './pages/PizzaDetailPage';
@@ -9,6 +10,7 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrdersPage from './pages/OrdersPage';
 import TrackOrderPage from './pages/TrackOrderPage';
+import AdminPage from './pages/AdminPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -55,6 +57,14 @@ function App() {
         }
       />
       <Route path="/login" element={<Login />} />
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminPage />
+          </AdminRoute>
+        }
+      />
       <Route
         path="/profile"
         element={

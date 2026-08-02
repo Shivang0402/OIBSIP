@@ -82,6 +82,15 @@
   font-weight: 700;
 }
 
+.app-header__link--admin {
+  color: var(--pn-primary-container);
+  font-weight: 700;
+}
+
+.app-header__link--admin::after {
+  background: var(--pn-primary-container);
+}
+
 .app-header__right {
   display: flex;
   align-items: center;
