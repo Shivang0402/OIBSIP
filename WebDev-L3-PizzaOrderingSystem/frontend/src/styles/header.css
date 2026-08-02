@@ -38,7 +38,7 @@
 .app-header__links {
   display: none;
   align-items: center;
-  gap: 4px;
+  gap: 20px;
 }
 
 .app-header__link {
@@ -48,11 +48,13 @@
   color: var(--pn-on-surface-variant);
   padding: 7px 12px;
   border-radius: var(--radius-md);
-  transition: color 0.18s ease, background 0.18s ease;
+  transition:
+    color 0.18s ease,
+    background 0.18s ease;
 }
 
 .app-header__link::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 12px;
   right: 12px;
@@ -92,7 +94,7 @@
 .app-header__right {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 20px;
 }
 
 .app-header__icon {

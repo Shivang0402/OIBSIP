@@ -68,7 +68,6 @@ function GithubIcon() {
 const QUICK_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Menu', to: '/menu' },
-  { label: 'Categories', href: '#categories' },
   { label: 'About', href: '#about' },
   { label: 'Contact', href: '#contact' },
   { label: 'Track Order', to: '/orders' },
@@ -184,10 +183,7 @@ function Footer() {
         </div>
 
         <div className="footer__bar">
-          <p>© 2026 PizzaNova. All rights reserved.</p>
-          <p>
-            Designed &amp; Developed by <span className="footer__credit">Shivang Pandey</span>
-          </p>
+          <p>© 2026 PizzaNova. &nbsp; All rights reserved.</p>
         </div>
       </div>
     </footer>

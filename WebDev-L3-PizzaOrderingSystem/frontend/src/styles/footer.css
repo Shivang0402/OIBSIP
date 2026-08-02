@@ -130,7 +130,11 @@
   border-radius: 50%;
   background: #26211b;
   color: #d6d3d1;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .footer-social:hover {
@@ -145,7 +149,7 @@
 .footer__bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
   padding: 20px 0;
