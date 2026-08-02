@@ -121,6 +121,9 @@ const orderSchema = new mongoose.Schema(
       enum: ["Paid", "Pending", "Failed"],
       default: "Pending",
     },
+    paidAt: {
+      type: Date,
+    },
   },
   { timestamps: true },
 );

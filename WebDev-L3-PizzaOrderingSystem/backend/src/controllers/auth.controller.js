@@ -6,7 +6,7 @@ const transporter = require("../config/mailer");
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, phone, role } = req.body;
+    const { name, email, password, phone } = req.body;
 
     if (!name || !email || !password || !phone) {
       return res.status(400).json({
@@ -35,7 +35,6 @@ const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       phone,
-      role,
       verificationToken,
       verificationTokenExpires,
     });

@@ -29,6 +29,19 @@ function formatPrice(price) {
   return `₹${Number(price).toFixed(2)}`;
 }
 
+function formatDateTime(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 function CheckoutPage() {
   const navigate = useNavigate();
 
@@ -139,12 +152,16 @@ function CheckoutPage() {
         },
       });
 
-      await verifyPayment({
+      const verified = await verifyPayment({
         razorpay_order_id: response.razorpay_order_id,
         razorpay_payment_id: response.razorpay_payment_id,
         razorpay_signature: response.razorpay_signature,
       });
 
+      setPlacedOrder((current) => ({
+        ...current,
+        paidAt: verified.order?.paidAt || new Date().toISOString(),
+      }));
       setPaymentState('paid');
     } catch (error) {
       if (error.message === PAYMENT_DISMISSED) setPaymentState('pending');
@@ -241,6 +258,12 @@ function CheckoutPage() {
                 <span>{paid ? 'Amount paid' : 'Total payable'}</span>
                 <strong>{formatPrice(Number(placedOrder.amount) / 100)}</strong>
               </div>
+              {paid && (
+                <div className="checkout-success__total">
+                  <span>Paid on</span>
+                  <strong>{formatDateTime(placedOrder.paidAt)}</strong>
+                </div>
+              )}
             </div>
 
             <div className="checkout-success__actions">
