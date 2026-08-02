@@ -6,12 +6,12 @@
 }
 
 .admin-shell {
-  max-width: 1240px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 80px 24px 72px;
+  padding: 80px 20px 72px;
   display: grid;
-  grid-template-columns: 236px minmax(0, 1fr);
-  gap: 28px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
 }
 
@@ -501,6 +501,7 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 
 .admin-alertrow__main strong {
@@ -508,6 +509,7 @@
   font-weight: 800;
   color: var(--color-charcoal, #1c1917);
   text-transform: capitalize;
+  overflow-wrap: anywhere;
 }
 
 .admin-alertrow__main span {
@@ -520,10 +522,12 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .admin-alertrow__side .admin-stockbar {
-  width: 90px;
+  width: 84px;
 }
 
 /* ---------- Pills ---------- */

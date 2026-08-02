@@ -56,9 +56,9 @@
 
 .profile-page__content {
   width: 100%;
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: clamp(24px, 4vw, 48px) clamp(16px, 4vw, 32px) 40px;
+  padding: clamp(24px, 4vw, 48px) clamp(16px, 3vw, 24px) 40px;
   display: flex;
   flex-direction: column;
   gap: 24px;

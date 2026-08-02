@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const transporter = require("../config/mailer");
+const { renderEmail } = require("../utils/emailTemplate");
 
 const registerUser = async (req, res) => {
   try {
@@ -46,10 +47,16 @@ const registerUser = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: user.email,
       subject: "Verify your PizzaNova account",
-      html: `<p>Hello<b> ${user.name} </b></p><br>
-      <p> Please click on the button to verify your email - </p><br>
-      <button><a href="${verificationLink}">Verify</a></button><br>
-      <p>${verificationLink}</p>`,
+      html: renderEmail({
+        title: "Verify your email",
+        greeting: `Hello ${user.name},`,
+        bodyHtml: `
+          <p style="margin:0 0 4px;font-family:Arial, Helvetica, sans-serif;font-size:14px;line-height:1.6;color:#44403c;">
+            Welcome to PizzaNova! Confirm your email address to activate your account and start ordering.
+          </p>`,
+        ctaText: "Verify Email",
+        ctaHref: verificationLink,
+      }),
     });
 
     return res.status(201).json({
@@ -247,10 +254,20 @@ const forgotPassword = async (req, res) => {
     await transporter.sendMail({
       from: process.env.USER_EMAIL,
       to: user.email,
-      subject: "Email verification for password change",
-      html: `<p>Hello<b> ${user.name} </b></p>
-      <p> Please click on the button to change password - 
-      ${passVerificationLink}</p>`,
+      subject: "Reset your PizzaNova password",
+      html: renderEmail({
+        title: "Reset your password",
+        greeting: `Hello ${user.name},`,
+        bodyHtml: `
+          <p style="margin:0 0 4px;font-family:Arial, Helvetica, sans-serif;font-size:14px;line-height:1.6;color:#44403c;">
+            We received a request to reset the password for your PizzaNova account. Click the button below to choose a new one.
+          </p>
+          <p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:12px;line-height:1.6;color:#a8a29e;">
+            This link expires in 24 hours. If you did not request this, you can safely ignore this email.
+          </p>`,
+        ctaText: "Reset Password",
+        ctaHref: passVerificationLink,
+      }),
     });
 
     return res.status(201).json({

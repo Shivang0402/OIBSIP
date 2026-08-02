@@ -916,11 +916,6 @@ function AdminPage() {
                                     </div>
                                     <StockBar stock={item.stock} threshold={item.threshold} />
                                     {low && <span className="admin-cell__low">Low</span>}
-                                    {item.lowStockAlertSent && (
-                                      <span className="admin-chip admin-chip--alerted">
-                                        Alert sent
-                                      </span>
-                                    )}
                                   </div>
                                 </td>
                                 <td data-label="Availability">
