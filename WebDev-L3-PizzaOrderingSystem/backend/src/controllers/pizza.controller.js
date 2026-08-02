@@ -40,6 +40,26 @@ const getPizza = async (req, res) => {
   }
 };
 
+const getPizzaById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pizza = await Pizza.findById(id);
+    if (!pizza) {
+      return res.status(404).json({
+        message: "Pizza does not exist.",
+      });
+    }
+    return res.status(200).json({
+      pizza,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.name,
+      message: error.message,
+    });
+  }
+};
+
 const updatePizza = async (req, res) => {
   const { name, description, price, image, isAvailable } = req.body;
   const { id } = req.params;
@@ -81,4 +101,4 @@ const updatePizza = async (req, res) => {
   }
 };
 
-module.exports = { addPizza, getPizza, updatePizza };
+module.exports = { addPizza, getPizza, getPizzaById, updatePizza };

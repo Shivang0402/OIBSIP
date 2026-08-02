@@ -6,7 +6,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://localhost:4404',
+      '/api': {
+        target: 'http://localhost:4404',
+        changeOrigin: true,
+      },
+      '/socket.io': {
+        target: 'http://localhost:4404',
+        ws: true,
+        changeOrigin: true,
+      },
     },
   },
 })

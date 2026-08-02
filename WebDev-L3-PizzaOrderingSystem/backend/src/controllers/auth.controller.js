@@ -164,6 +164,58 @@ const userProfile = async (req, res) => {
   });
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const { name, phone } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        message: "Name is required.",
+      });
+    }
+
+    const updateFields = { name: name.trim() };
+
+    if (phone) {
+      if (!/^\d{10}$/.test(phone)) {
+        return res.status(400).json({
+          message: "Enter a valid 10-digit phone number.",
+        });
+      }
+      const phoneInUse = await User.findOne({
+        phone,
+        _id: { $ne: req.user.id },
+      });
+      if (phoneInUse) {
+        return res.status(400).json({
+          message: "Phone number is already in use.",
+        });
+      }
+      updateFields.phone = phone;
+    }
+
+    const user = await User.findByIdAndUpdate(req.user.id, updateFields, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Profile updated successfully.",
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 const inventory = async (req, res) => {
   return res.status(200).json({
     message: "Welcome to the inventory.",
@@ -292,6 +344,7 @@ module.exports = {
   verifyEmail,
   userLogin,
   userProfile,
+  updateProfile,
   inventory,
   forgotPassword,
   resetPassword,

@@ -4,6 +4,10 @@ export function getPizzas() {
   return api.get('/pizza/getPizza');
 }
 
+export function getPizzaById(id) {
+  return api.get(`/pizza/getPizza/${id}`);
+}
+
 export function addPizza(payload) {
   return api.post('/pizza/addPizza', payload);
 }

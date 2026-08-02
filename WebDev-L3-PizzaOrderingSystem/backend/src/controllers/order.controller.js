@@ -341,6 +341,12 @@ const verifyPayment = async (req, res) => {
     order.paidAt = Date.now();
     await order.save();
 
+    const io = getIO();
+    io.to(`user_${order.user.toString()}`).emit("orderStatusUpdated", {
+      orderId: order._id,
+      status: order.orderStatus,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Payment verified successfully.",
@@ -434,7 +440,7 @@ const updateOrderStatus = async (req, res) => {
       });
     }
     const io = getIO();
-    io.to(order.user.toString()).emit("orderStatusUpdated", {
+    io.to(`user_${order.user.toString()}`).emit("orderStatusUpdated", {
       orderId: order._id,
       status: order.orderStatus,
     });

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Minus, Pizza, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { ArrowRight, Minus, Pizza, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 import { getCart, updateCartQuantity, removeCartItem } from '../services/cartService';
@@ -76,7 +76,11 @@ function CartPage() {
             {items.map((item) => (
               <article key={item.id} className="cart-item">
                 <div className="cart-item__thumb" aria-hidden="true">
-                  <Pizza size={28} />
+                  {item.image ? (
+                    <img className="cart-item__img" src={item.image} alt={item.name} />
+                  ) : (
+                    <Pizza size={28} />
+                  )}
                 </div>
                 <div className="cart-item__body">
                   <h2 className="cart-item__name">{item.name}</h2>
@@ -143,6 +147,14 @@ function CartPage() {
               <span>Total</span>
               <strong>{formatPrice(subtotal)}</strong>
             </div>
+            <button
+              className="cart-summary__checkout"
+              type="button"
+              onClick={() => navigate('/checkout')}
+            >
+              Proceed to Checkout
+              <ArrowRight size={18} />
+            </button>
           </aside>
         </div>
       </main>

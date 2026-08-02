@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ReceiptText } from 'lucide-react';
 import { getUser } from '../services/session';
 import { getOrders } from '../services/orderService';
-
-const STATUS_STEPS = ['Order Recevied', 'In Kitchen', 'On the way', 'Delievered'];
+import { canonicalStatus, stepIndexForStatus, TRACK_STEPS } from '../utils/orderStatus';
 
 function ActiveOrderStrip() {
   const navigate = useNavigate();
@@ -22,7 +21,7 @@ function ActiveOrderStrip() {
       try {
         const data = await getOrders();
         const active = (data.orders || []).find(
-          (o) => o.paymentStatus !== 'Failed' && o.orderStatus !== 'Delievered',
+          (o) => o.paymentStatus !== 'Failed' && canonicalStatus(o.orderStatus) !== 'Delivered',
         );
         if (!cancelled) setOrder(active || null);
       } catch {
@@ -40,8 +39,9 @@ function ActiveOrderStrip() {
 
   if (!loaded || !order) return null;
 
-  const stepIndex = STATUS_STEPS.indexOf(order.orderStatus);
-  const progress = stepIndex < 0 ? 100 : ((stepIndex + 1) / STATUS_STEPS.length) * 100;
+  const stepIndex = stepIndexForStatus(order.orderStatus);
+  const progress =
+    stepIndex < 0 ? 100 : ((stepIndex + 1) / TRACK_STEPS.length) * 100;
   const shortId = String(order._id).slice(-6).toUpperCase();
   const itemLabel = order.pizzaSnapshot?.name
     ? `${order.pizzaSnapshot.name} × ${order.quantity}`
@@ -60,9 +60,13 @@ function ActiveOrderStrip() {
         <div className="home-order__bar">
           <span style={{ width: `${progress}%` }} />
         </div>
-        <span className="home-order__status">{order.orderStatus}</span>
+        <span className="home-order__status">{canonicalStatus(order.orderStatus)}</span>
       </div>
-      <button className="home-order__cta" type="button" onClick={() => navigate('/orders')}>
+      <button
+        className="home-order__cta"
+        type="button"
+        onClick={() => navigate(`/orders/${order._id}`)}
+      >
         Track
         <ArrowRight size={14} />
       </button>

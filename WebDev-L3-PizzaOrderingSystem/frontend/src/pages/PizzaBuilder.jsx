@@ -3,71 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Check, Minus, Pizza, Plus, ShoppingCart } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
-import { addCartItem } from '../services/cartService';
+import { addCartItem, makeCartItemId } from '../services/cartService';
+import {
+  addonsPrice,
+  CUSTOM_BASE_PRICE,
+  optionPrice,
+  PIZZA_OPTIONS as BUILDER_STEPS,
+} from '../utils/pizzaOptions';
 import '../styles/builder.css';
-
-const BASE_PRICE = 199;
-
-const BUILDER_STEPS = [
-  {
-    key: 'base',
-    title: 'Choose Your Base',
-    single: true,
-    options: [
-      { name: 'Thin Crust', price: 0 },
-      { name: 'Thick Crust', price: 20 },
-      { name: 'Cheese Burst', price: 60 },
-      { name: 'Stuffed Crust', price: 60 },
-      { name: 'Whole Wheat', price: 30 },
-    ],
-  },
-  {
-    key: 'sauce',
-    title: 'Pick a Sauce',
-    single: true,
-    options: [
-      { name: 'Classic Tomato', price: 0 },
-      { name: 'Spicy Tomato', price: 0 },
-      { name: 'BBQ', price: 20 },
-      { name: 'Pesto', price: 30 },
-      { name: 'White Garlic', price: 20 },
-    ],
-  },
-  {
-    key: 'cheese',
-    title: 'Select Cheese',
-    single: true,
-    options: [
-      { name: 'Mozzarella', price: 0 },
-      { name: 'Cheddar', price: 30 },
-      { name: 'Parmesan', price: 40 },
-      { name: 'Processed Cheese', price: 20 },
-      { name: 'Vegan Cheese', price: 50 },
-    ],
-  },
-  {
-    key: 'vegetables',
-    title: 'Add Vegetables',
-    single: false,
-    options: [
-      { name: 'Onion', price: 15 },
-      { name: 'Tomato', price: 15 },
-      { name: 'Capsicum', price: 15 },
-      { name: 'Jalapeño', price: 15 },
-      { name: 'Sweet Corn', price: 20 },
-      { name: 'Mushroom', price: 25 },
-      { name: 'Black Olive', price: 25 },
-      { name: 'Green Olive', price: 25 },
-      { name: 'Paneer', price: 40 },
-      { name: 'Broccoli', price: 15 },
-    ],
-  },
-];
-
-function optionPrice(stepKey, name) {
-  const step = BUILDER_STEPS.find((s) => s.key === stepKey);
-  return step?.options.find((o) => o.name === name)?.price ?? 0;
-}
 
 function formatPrice(price) {
   return `₹${Number(price).toFixed(2)}`;
@@ -85,12 +28,7 @@ function PizzaBuilder() {
 
   const selections = { base, sauce, cheese, vegetables };
   const canAdd = Boolean(base && sauce && cheese);
-  const addonsPrice =
-    (base ? optionPrice('base', base) : 0) +
-    (sauce ? optionPrice('sauce', sauce) : 0) +
-    (cheese ? optionPrice('cheese', cheese) : 0) +
-    vegetables.reduce((sum, veg) => sum + optionPrice('vegetables', veg), 0);
-  const unitPrice = BASE_PRICE + addonsPrice;
+  const unitPrice = CUSTOM_BASE_PRICE + addonsPrice(selections);
   const total = unitPrice * quantity;
 
   function selectOption(stepKey, option) {
@@ -108,7 +46,7 @@ function PizzaBuilder() {
   function handleAddToCart() {
     if (!canAdd) return;
     addCartItem({
-      id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      id: makeCartItemId('custom'),
       name: 'Custom Pizza',
       price: unitPrice,
       quantity,
@@ -158,7 +96,7 @@ function PizzaBuilder() {
                         <span className="builder-option__check">
                           <Check size={14} />
                         </span>
-                        {option.name}
+                        <span className="builder-option__name">{option.name}</span>
                         {option.price > 0 && (
                           <span className="builder-option__price">+{formatPrice(option.price)}</span>
                         )}

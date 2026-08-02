@@ -1,6 +1,7 @@
 require("dotenv").config();
 const http = require("http");
 const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
 const app = require("./app");
 const connectDb = require("./config/db");
 const { setIO } = require("../src/socket/socket");
@@ -20,7 +21,20 @@ const startServer = async () => {
 
   setIO(io);
   io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    const token = socket.handshake.auth?.token;
+
+    if (!token) {
+      console.log(`Socket ${socket.id} connected without token`);
+      return;
+    }
+
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET);
+      socket.join(`user_${payload.id}`);
+      console.log(`User ${payload.id} connected: ${socket.id}`);
+    } catch {
+      console.log(`Socket ${socket.id} rejected (invalid token)`);
+    }
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.id}`);
