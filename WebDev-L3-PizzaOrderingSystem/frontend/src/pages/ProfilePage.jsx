@@ -2,15 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CalendarDays,
-  Check,
   Clock,
   History,
   KeyRound,
-  Lock,
   LogOut,
   Mail,
   Package,
-  Pencil,
   Phone,
   Pizza,
   ShieldCheck,
@@ -18,14 +15,14 @@ import {
   UserRound,
   X,
 } from 'lucide-react';
-import Logo from '../components/branding/Logo';
+import AppHeader from '../components/AppHeader';
 import AuthCard from '../components/auth/AuthCard';
 import InputField from '../components/auth/InputField';
 import PrimaryButton from '../components/auth/PrimaryButton';
 import FormMessage from '../components/auth/FormMessage';
 import BackButton from '../components/BackButton';
 import Footer from '../components/Footer';
-import { getProfile, changePassword, updateProfile } from '../services/authService';
+import { getProfile, changePassword } from '../services/authService';
 import { getOrders } from '../services/orderService';
 import { getOrderItems, getOrderNumber } from '../utils/orderItems';
 import { clearSession, saveUser, getUser } from '../services/session';
@@ -66,11 +63,6 @@ function ProfilePage() {
   const [user, setUser] = useState(getUser());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-
-  const [editingName, setEditingName] = useState(false);
-  const [nameForm, setNameForm] = useState('');
-  const [nameError, setNameError] = useState('');
-  const [savingName, setSavingName] = useState(false);
 
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [form, setForm] = useState({ currentPass: '', newPass: '', confirmNewPass: '' });
@@ -144,51 +136,6 @@ function ProfilePage() {
     navigate('/login');
   }
 
-  function openNameEdit() {
-    setNameForm(user?.name || '');
-    setNameError('');
-    setEditingName(true);
-  }
-
-  function closeNameEdit() {
-    setEditingName(false);
-    setNameError('');
-    setSavingName(false);
-  }
-
-  async function handleNameSubmit(event) {
-    event.preventDefault();
-    if (!isRequired(nameForm)) {
-      setNameError('Name is required.');
-      return;
-    }
-
-    setSavingName(true);
-    setNameError('');
-    try {
-      const data = await updateProfile({ name: nameForm.trim() });
-      setUser(data.user);
-      saveUser({
-        id: data.user._id || data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-      });
-      setSuccess('Profile updated successfully.');
-      setEditingName(false);
-    } catch (error) {
-      setNameError(error.message);
-    } finally {
-      setSavingName(false);
-    }
-  }
-
-  function openPasswordForm() {
-    setErrors({});
-    setFormError('');
-    setSuccess('');
-    setShowPasswordForm(true);
-  }
-
   function closePasswordForm() {
     setErrors({});
     setFormError('');
@@ -232,21 +179,7 @@ function ProfilePage() {
 
   return (
     <div className="profile-page">
-      <header className="profile-page__header">
-        <div className="profile-page__brand">
-          <Logo variant="full" />
-        </div>
-        <nav className="profile-page__nav" aria-label="Profile navigation">
-          <span className="profile-page__nav-item profile-page__nav-item--active">
-            <UserRound size={16} />
-            My Profile
-          </span>
-          <PrimaryButton type="button" onClick={handleSignOut}>
-            <LogOut size={16} />
-            Sign Out
-          </PrimaryButton>
-        </nav>
-      </header>
+      <AppHeader />
 
       <main className="profile-page__content">
         <BackButton />
@@ -268,103 +201,60 @@ function ProfilePage() {
         )}
 
         {!loading && !loadError && user && (
-          <>
-            <section className="profile-summary">
-              <div className="profile-summary__avatar" aria-hidden="true">
-                {getInitials(user.name)}
-              </div>
-              <div className="profile-summary__info">
-                <p className="profile-summary__greeting">
-                  <Pizza size={14} />
-                  Welcome back
-                </p>
-                {editingName ? (
-                  <form className="profile-name-form" onSubmit={handleNameSubmit} noValidate>
-                    <div className="profile-name-form__field">
-                      <input
-                        className="profile-name-form__input"
-                        type="text"
-                        name="name"
-                        value={nameForm}
-                        onChange={(event) => {
-                          setNameForm(event.target.value);
-                          setNameError('');
-                        }}
-                        placeholder="Your name"
-                        aria-label="Full name"
-                      />
-                      <button
-                        className="profile-name-form__save"
-                        type="submit"
-                        disabled={savingName}
-                        aria-label="Save name"
-                        title="Save"
-                      >
-                        <Check size={16} />
-                      </button>
-                      <button
-                        className="profile-name-form__cancel"
-                        type="button"
-                        onClick={closeNameEdit}
-                        aria-label="Cancel editing name"
-                        title="Cancel"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                    {nameError && <p className="profile-name-form__error">{nameError}</p>}
-                  </form>
-                ) : (
-                  <h1 className="profile-summary__name">
-                    {user.name}
-                    <button
-                      className="profile-summary__edit"
-                      type="button"
-                      onClick={openNameEdit}
-                      aria-label="Edit name"
-                      title="Edit name"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                  </h1>
-                )}
-                <p className="profile-summary__email">{user.email}</p>
-                <div className="profile-summary__badges">
-                  <span className="profile-badge">
-                    {user.role === 'admin' ? 'Admin' : 'User'}
-                  </span>
-                  {user.isVerified && (
-                    <span className="profile-badge profile-badge--success">
-                      <ShieldCheck size={12} />
-                      Email Verified
-                    </span>
-                  )}
-                  {currentOrders.length > 0 && (
-                    <span className="profile-badge profile-badge--order">
-                      <Package size={12} />
-                      {currentOrders.length} active order{currentOrders.length > 1 ? 's' : ''}
-                    </span>
-                  )}
+          <div className="profile-layout">
+            <section className="profile-panel">
+              <div className="profile-head">
+                <div className="profile-head__avatar" aria-hidden="true">
+                  {getInitials(user.name)}
                 </div>
-                {user.role === 'admin' && (
-                  <button
-                    className="profile-admin-link"
-                    type="button"
-                    onClick={() => navigate('/admin')}
-                  >
-                    <ShieldCheck size={15} />
-                    Open Admin Dashboard
-                  </button>
-                )}
+                <div className="profile-head__info">
+                  <h1 className="profile-head__name">{user.name}</h1>
+                  <p className="profile-head__email">{user.email}</p>
+                  <div className="profile-head__actions">
+                    <button
+                      className="profile-mini-link"
+                      type="button"
+                      onClick={() => setShowPasswordForm((visible) => !visible)}
+                    >
+                      <KeyRound size={15} />
+                      {showPasswordForm ? 'Close password form' : 'Change password'}
+                    </button>
+                    {user.role === 'admin' && (
+                      <button
+                        className="profile-mini-link"
+                        type="button"
+                        onClick={() => navigate('/admin')}
+                      >
+                        <ShieldCheck size={15} />
+                        Admin dashboard
+                      </button>
+                    )}
+                    <button
+                      className="profile-mini-link profile-mini-link--danger"
+                      type="button"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut size={15} />
+                      Sign out
+                    </button>
+                  </div>
+                </div>
               </div>
-            </section>
 
-            {success && <FormMessage type="success">{success}</FormMessage>}
+              {success && <FormMessage type="success">{success}</FormMessage>}
 
-            <div className="profile-grid">
-              <AuthCard title="Profile Details" subtitle="Your account information">
+              <div className="profile-divider" />
+
+              <div className="profile-section">
+                <h2 className="profile-section__title">Account details</h2>
                 <div className="profile-details">
-                  <ProfileRow icon={UserRound} label="Full Name" value={user.name} />
+                  <div className="profile-row">
+                    <span className="profile-row__label">
+                      <UserRound size={15} className="profile-row__icon" />
+                      Full Name
+                    </span>
+                    <span className="profile-row__value">{user.name}</span>
+                  </div>
                   <ProfileRow icon={Mail} label="Email" value={user.email} />
                   <ProfileRow icon={Phone} label="Phone" value={user.phone || '—'} />
                   <ProfileRow
@@ -373,24 +263,18 @@ function ProfilePage() {
                     value={user.role === 'admin' ? 'Admin' : 'User'}
                   />
                   <ProfileRow
-                    icon={ShieldCheck}
-                    label="Email Verified"
-                    value={user.isVerified ? 'Yes' : 'No'}
-                  />
-                  <ProfileRow
                     icon={CalendarDays}
                     label="Member Since"
                     value={formatDate(user.createdAt)}
                   />
                 </div>
-              </AuthCard>
+              </div>
 
-              <AuthCard
-                title="Security"
-                subtitle="Manage your password and keep your account safe"
-              >
-                {showPasswordForm ? (
-                  <div className="profile-password__form-wrap">
+              {showPasswordForm && (
+                <>
+                  <div className="profile-divider" />
+                  <div className="profile-section">
+                    <h2 className="profile-section__title">Change password</h2>
                     {formError && <FormMessage type="error">{formError}</FormMessage>}
 
                     <form className="auth-form" onSubmit={handlePasswordSubmit} noValidate>
@@ -440,97 +324,70 @@ function ProfilePage() {
                       </div>
                     </form>
                   </div>
-                ) : (
-                  <div className="profile-security">
-                    <div className="profile-security__row">
-                      <div className="profile-security__icon" aria-hidden="true">
-                        <Lock size={20} />
-                      </div>
-                      <div className="profile-security__info">
-                        <p className="profile-security__title">Password</p>
-                        <p className="profile-security__text">
-                          Last changed via your account settings.
-                        </p>
-                      </div>
-                      <button
-                        className="profile-security__edit"
-                        type="button"
-                        onClick={openPasswordForm}
-                      >
-                        <KeyRound size={15} />
-                        Change
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </AuthCard>
-            </div>
-
-            <section className="profile-orders">
-              <div className="profile-orders__head">
-                <h2 className="profile-orders__title">
-                  <History size={18} />
-                  Order History
-                </h2>
-                <p className="profile-orders__subtitle">
-                  Keep an eye on your current orders and revisit past ones.
-                </p>
-              </div>
-
-              {ordersLoading && (
-                <div className="profile-orders__state">
-                  <div className="profile-page__spinner" aria-hidden="true" />
-                  <p>Loading your orders&hellip;</p>
-                </div>
-              )}
-
-              {!ordersLoading && ordersError && (
-                <div className="profile-orders__state">
-                  <p className="profile-orders__error">{ordersError}</p>
-                </div>
-              )}
-
-              {!ordersLoading && !ordersError && orders.length === 0 && (
-                <div className="profile-orders__state">
-                  <div className="profile-orders__empty-icon" aria-hidden="true">
-                    <Package size={26} />
-                  </div>
-                  <p className="profile-orders__empty-title">No orders yet</p>
-                  <p className="profile-orders__empty-text">
-                    When you place an order, it will show up here.
-                  </p>
-                </div>
-              )}
-
-              {!ordersLoading && !ordersError && currentOrders.length > 0 && (
-                <div className="profile-orders__group">
-                  <h3 className="profile-orders__group-title">
-                    <Clock size={15} />
-                    Current Orders
-                  </h3>
-                  <div className="profile-orders__list">
-                    {currentOrders.map((order) => (
-                      <OrderCard key={order._id} order={order} current />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {!ordersLoading && !ordersError && previousOrders.length > 0 && (
-                <div className="profile-orders__group">
-                  <h3 className="profile-orders__group-title">
-                    <History size={15} />
-                    Previous Orders
-                  </h3>
-                  <div className="profile-orders__list">
-                    {previousOrders.map((order) => (
-                      <OrderCard key={order._id} order={order} current={false} />
-                    ))}
-                  </div>
-                </div>
+                </>
               )}
             </section>
-          </>
+
+            <section className="profile-panel profile-panel--orders">
+              <div className="profile-orders">
+                {ordersLoading && (
+                  <div className="profile-orders__state">
+                    <div className="profile-page__spinner" aria-hidden="true" />
+                    <p>Loading your orders&hellip;</p>
+                  </div>
+                )}
+
+                {!ordersLoading && ordersError && (
+                  <div className="profile-orders__state">
+                    <p className="profile-orders__error">{ordersError}</p>
+                  </div>
+                )}
+
+                {!ordersLoading && !ordersError && orders.length === 0 && (
+                  <div className="profile-orders__state">
+                    <div className="profile-orders__empty-icon" aria-hidden="true">
+                      <Package size={26} />
+                    </div>
+                    <p className="profile-orders__empty-title">No orders yet</p>
+                    <p className="profile-orders__empty-text">
+                      When you place an order, it will show up here.
+                    </p>
+                  </div>
+                )}
+
+                {!ordersLoading && !ordersError && (currentOrders.length > 0 || previousOrders.length > 0) && (
+                  <div className="profile-orders-box">
+                    {currentOrders.length > 0 && (
+                      <div className="profile-orders__group">
+                        <h3 className="profile-orders__group-title">
+                          <Clock size={15} />
+                          Current Orders
+                        </h3>
+                        <div className="profile-orders__list">
+                          {currentOrders.map((order) => (
+                            <OrderCard key={order._id} order={order} current />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {previousOrders.length > 0 && (
+                      <div className="profile-orders__group">
+                        <h3 className="profile-orders__group-title">
+                          <History size={15} />
+                          Previous Orders
+                        </h3>
+                        <div className="profile-orders__list">
+                          {previousOrders.map((order) => (
+                            <OrderCard key={order._id} order={order} current={false} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
         )}
       </main>
 

@@ -4,9 +4,7 @@
   left: 0;
   right: 0;
   z-index: 50;
-  background: rgba(252, 249, 248, 0.6);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: var(--pn-bg, #fcf9f8);
   border-bottom: 1px solid var(--pn-outline-variant);
 }
 
@@ -18,7 +16,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  height: 56px;
+  height: 52px;
 }
 
 .app-header__left {
@@ -178,7 +176,7 @@
 
 @media (min-width: 768px) {
   .app-header__inner {
-    height: 64px;
+    height: 60px;
   }
 
   .app-header__links {

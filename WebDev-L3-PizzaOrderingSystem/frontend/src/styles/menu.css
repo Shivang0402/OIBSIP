@@ -10,7 +10,13 @@
 .menu-main {
   flex: 1;
   width: 100%;
-  padding: 80px 20px 56px;
+  padding: 116px 20px 56px;
+}
+
+.menu-main .back-button-wrap {
+  position: fixed;
+  top: 68px;
+  left: 16px;
 }
 
 .menu-head {
@@ -74,6 +80,11 @@
 
 @media (min-width: 768px) {
   .menu-main {
-    padding: 88px 24px 56px;
+    padding: 122px 24px 56px;
+  }
+
+  .menu-main .back-button-wrap {
+    top: 78px;
+    left: 20px;
   }
 }

@@ -74,13 +74,13 @@ function Home() {
             ))}
             <div className="home-hero__overlay" />
           </div>
+          <div className="home-hero__greeting">
+            <p className="home-hero__greeting-eyebrow">{user ? 'Hello,' : 'Welcome to'}</p>
+            <h2 className="home-hero__greeting-name">
+              {user ? user.name.split(' ')[0] : 'PizzaNova'}
+            </h2>
+          </div>
           <div className="home-hero__content">
-            <div className="home-hero__greeting">
-              <p className="home-hero__greeting-eyebrow">{user ? 'Welcome back' : 'Welcome to'}</p>
-              <h2 className="home-hero__greeting-name">
-                {user ? user.name.split(' ')[0] : 'PizzaNova'}
-              </h2>
-            </div>
             <span className="home-hero__chip">Freshly baked today</span>
             <h1 className="home-hero__title">
               Handcrafted <span>Pizza</span>. Delivered Fresh.

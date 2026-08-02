@@ -1,26 +1,51 @@
 .back-button-wrap {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto 20px;
+  position: fixed;
+  top: 68px;
+  left: 16px;
+  z-index: 40;
+  width: auto;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.back-button-wrap--hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
 }
 
 .back-button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--pn-on-surface-variant, var(--color-muted));
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px 8px;
   border-radius: 8px;
-  transition: color 0.2s ease, background 0.2s ease;
+  transition: color 0.18s ease;
+}
+
+.back-button svg {
+  transition: transform 0.18s ease;
 }
 
 .back-button:hover {
   color: var(--pn-primary, var(--color-primary));
-  background: rgba(255, 107, 0, 0.08);
+}
+
+.back-button:hover svg {
+  transform: translateX(-3px);
+}
+
+@media (min-width: 768px) {
+  .back-button-wrap {
+    top: 78px;
+    left: 20px;
+  }
 }
