@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, ArrowRight, CheckCircle2, Loader2, MapPin, Pizza, ShoppingCart } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Loader2, MapPin, Pizza, ShoppingCart } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
-import { getCart, removeCartItem, clearCart } from '../services/cartService';
+import { getCart, clearCart } from '../services/cartService';
 import { placeOrder } from '../services/orderService';
 import { isRequired } from '../utils/validators';
 import '../styles/checkout.css';
@@ -17,7 +17,9 @@ function formatPrice(price) {
 function CheckoutPage() {
   const navigate = useNavigate();
 
-  const [items, setItems] = useState(getCart());
+  const items = getCart();
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
   const [address, setAddress] = useState({
     street: '',
     area: '',
@@ -30,23 +32,11 @@ function CheckoutPage() {
   const [placing, setPlacing] = useState(false);
   const [placedOrders, setPlacedOrders] = useState(null);
 
-  const orderableItems = items.filter((item) => Boolean(item.pizzaId));
-  const blockedItems = items.filter((item) => !item.pizzaId);
-  const orderableTotal = orderableItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
-
   function handleChange(event) {
     const { name, value } = event.target;
     setAddress((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
     setFormError('');
-  }
-
-  function removeBlockedItem(id) {
-    removeCartItem(id);
-    setItems(getCart());
   }
 
   function validate() {
@@ -63,11 +53,6 @@ function CheckoutPage() {
   async function handlePlaceOrder(event) {
     event.preventDefault();
 
-    if (blockedItems.length > 0) {
-      setFormError('Remove custom pizzas from your cart before placing an order.');
-      return;
-    }
-
     const nextErrors = validate();
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -83,32 +68,28 @@ function CheckoutPage() {
       pincode: Number(address.pincode.trim()),
     };
 
-    const results = [];
     try {
-      for (const item of orderableItems) {
-        const data = await placeOrder({
-          pizzaId: item.pizzaId,
+      const orderItems = items.map((item) => {
+        const base = {
           quantity: item.quantity,
           base: item.customization.base,
           sauce: item.customization.sauce,
           cheese: item.customization.cheese,
           vegetables: item.customization.vegetables,
-          deliveryAddress,
-        });
-        results.push(data);
-      }
+        };
+        return item.pizzaId ? { ...base, pizzaId: item.pizzaId } : { ...base, unitPrice: item.price };
+      });
 
-      const orders = results.map((data) => ({
+      const data = await placeOrder({ items: orderItems, deliveryAddress });
+
+      clearCart();
+      setPlacedOrders({
         orderId: data.order?._id,
+        orderNumber: data.order?.orderNumber,
         razorpayOrderId: data.razorpayOrderId,
         amount: data.amount || data.order?.totalPrice * 100,
         currency: data.currency || 'INR',
-      }));
-      const totalAmount = orders.reduce((sum, order) => sum + Number(order.amount || 0), 0);
-
-      clearCart();
-      setItems([]);
-      setPlacedOrders({ orders, totalAmount });
+      });
     } catch (error) {
       setFormError(error.message || 'Unable to place your order. Please try again.');
       setPlacedOrders(null);
@@ -160,20 +141,18 @@ function CheckoutPage() {
             </p>
 
             <div className="checkout-success__orders">
-              {placedOrders.orders.map((order, index) => (
-                <div key={order.orderId || index} className="checkout-success__row">
-                  <span className="checkout-success__label">
-                    Order #{String(order.orderId).slice(-8)}
-                  </span>
-                  <span className="checkout-success__value">
-                    {formatPrice(Number(order.amount) / 100)}
-                  </span>
-                  <span className="checkout-success__pending">Pending</span>
-                </div>
-              ))}
+              <div className="checkout-success__row">
+                <span className="checkout-success__label">
+                  Order #{placedOrders.orderNumber}
+                </span>
+                <span className="checkout-success__value">
+                  {formatPrice(Number(placedOrders.amount) / 100)}
+                </span>
+                <span className="checkout-success__pending">Pending</span>
+              </div>
               <div className="checkout-success__total">
                 <span>Total payable</span>
-                <strong>{formatPrice(placedOrders.totalAmount / 100)}</strong>
+                <strong>{formatPrice(Number(placedOrders.amount) / 100)}</strong>
               </div>
             </div>
 
@@ -218,29 +197,6 @@ function CheckoutPage() {
             Enter your delivery address to place the order.
           </p>
         </section>
-
-        {blockedItems.length > 0 && (
-          <div className="checkout-warning">
-            <AlertTriangle size={18} />
-            <div className="checkout-warning__body">
-              <strong>Custom pizzas can&apos;t be ordered yet.</strong>
-              <p>Remove them below to continue with your menu pizzas.</p>
-            </div>
-            <div className="checkout-warning__items">
-              {blockedItems.map((item) => (
-                <button
-                  key={item.id}
-                  className="checkout-warning__chip"
-                  type="button"
-                  onClick={() => removeBlockedItem(item.id)}
-                >
-                  {item.name} × {item.quantity}
-                  <span aria-hidden="true">✕</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         <form className="checkout-grid" onSubmit={handlePlaceOrder} noValidate>
           <section className="checkout-address">
@@ -343,7 +299,7 @@ function CheckoutPage() {
             <h2 className="checkout-summary__title">Order Summary</h2>
 
             <div className="checkout-summary__items">
-              {orderableItems.map((item) => (
+              {items.map((item) => (
                 <div key={item.id} className="checkout-item">
                   <div className="checkout-item__thumb" aria-hidden="true">
                     {item.image ? (
@@ -374,7 +330,7 @@ function CheckoutPage() {
             <div className="checkout-summary__divider" />
             <div className="checkout-summary__row">
               <span>Subtotal</span>
-              <span>{formatPrice(orderableTotal)}</span>
+              <span>{formatPrice(total)}</span>
             </div>
             <div className="checkout-summary__row">
               <span>Delivery</span>
@@ -383,7 +339,7 @@ function CheckoutPage() {
             <div className="checkout-summary__divider" />
             <div className="checkout-summary__row checkout-summary__row--total">
               <span>Total</span>
-              <strong>{formatPrice(orderableTotal)}</strong>
+              <strong>{formatPrice(total)}</strong>
             </div>
 
             {formError && <p className="checkout-summary__error">{formError}</p>}
@@ -391,7 +347,7 @@ function CheckoutPage() {
             <button
               className="checkout-summary__submit"
               type="submit"
-              disabled={placing || orderableItems.length === 0}
+              disabled={placing || items.length === 0}
             >
               {placing ? (
                 <>

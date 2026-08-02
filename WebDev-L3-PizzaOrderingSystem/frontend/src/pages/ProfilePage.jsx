@@ -26,6 +26,7 @@ import FormMessage from '../components/auth/FormMessage';
 import BackButton from '../components/BackButton';
 import { getProfile, changePassword, updateProfile } from '../services/authService';
 import { getOrders } from '../services/orderService';
+import { getOrderItems, getOrderNumber } from '../utils/orderItems';
 import { clearSession, saveUser, getUser } from '../services/session';
 import { isRequired, isStrongEnough } from '../utils/validators';
 import '../styles/auth.css';
@@ -551,8 +552,10 @@ function ProfileRow({ icon: Icon, label, value }) {
 
 function OrderCard({ order, current }) {
   const navigate = useNavigate();
-  const snapshot = order.pizzaSnapshot || {};
-  const customization = order.customization || {};
+  const orderItems = getOrderItems(order);
+  const first = orderItems[0] || {};
+  const snapshot = first.pizzaSnapshot || {};
+  const customization = first.customization || {};
   const vegCount = Array.isArray(customization.vegetables) ? customization.vegetables.length : 0;
 
   function handleTrack() {
@@ -567,10 +570,16 @@ function OrderCard({ order, current }) {
         </div>
         <div className="order-card__info">
           <h4 className="order-card__name">
-            {snapshot.name || 'Pizza'} <span className="order-card__qty">× {order.quantity}</span>
+            {snapshot.name || 'Pizza'}
+            {orderItems.length === 1 && (
+              <span className="order-card__qty">× {first.quantity}</span>
+            )}
+            {orderItems.length > 1 && (
+              <span className="order-card__qty">+{orderItems.length - 1} more</span>
+            )}
           </h4>
           <p className="order-card__meta">
-            #{String(order._id).slice(-8)} · {formatDate(order.createdAt)}
+            #{getOrderNumber(order)} · {formatDate(order.createdAt)}
           </p>
           <p className="order-card__custom">
             {customization.base} · {customization.sauce} · {customization.cheese}

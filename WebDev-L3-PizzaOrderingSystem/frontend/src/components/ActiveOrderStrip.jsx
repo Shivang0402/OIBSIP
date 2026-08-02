@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ReceiptText } from 'lucide-react';
 import { getUser } from '../services/session';
 import { getOrders } from '../services/orderService';
-import { canonicalStatus, stepIndexForStatus, TRACK_STEPS } from '../utils/orderStatus';
+import { getOrderItemsLabel, getOrderNumber } from '../utils/orderItems';
+import {
+  canonicalStatus,
+  isTerminalStatus,
+  stepIndexForStatus,
+  TRACK_STEPS,
+} from '../utils/orderStatus';
 
 function ActiveOrderStrip() {
   const navigate = useNavigate();
@@ -21,7 +27,7 @@ function ActiveOrderStrip() {
       try {
         const data = await getOrders();
         const active = (data.orders || []).find(
-          (o) => o.paymentStatus !== 'Failed' && canonicalStatus(o.orderStatus) !== 'Delivered',
+          (o) => o.paymentStatus !== 'Failed' && !isTerminalStatus(o.orderStatus),
         );
         if (!cancelled) setOrder(active || null);
       } catch {
@@ -41,11 +47,9 @@ function ActiveOrderStrip() {
 
   const stepIndex = stepIndexForStatus(order.orderStatus);
   const progress =
-    stepIndex < 0 ? 100 : ((stepIndex + 1) / TRACK_STEPS.length) * 100;
-  const shortId = String(order._id).slice(-6).toUpperCase();
-  const itemLabel = order.pizzaSnapshot?.name
-    ? `${order.pizzaSnapshot.name} × ${order.quantity}`
-    : `Order ${shortId}`;
+    stepIndex < 0 ? 0 : ((stepIndex + 1) / TRACK_STEPS.length) * 100;
+  const shortId = getOrderNumber(order);
+  const itemLabel = getOrderItemsLabel(order);
 
   return (
     <section className="home-order">

@@ -6,6 +6,7 @@ import BackButton from '../components/BackButton';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
 import { getOrders } from '../services/orderService';
+import { getOrderItems, getOrderNumber } from '../utils/orderItems';
 import { canonicalStatus, isCurrentOrder } from '../utils/orderStatus';
 import '../styles/orders.css';
 
@@ -126,8 +127,10 @@ function OrdersPage() {
 
 function OrderCard({ order }) {
   const navigate = useNavigate();
-  const snapshot = order.pizzaSnapshot || {};
-  const customization = order.customization || {};
+  const orderItems = getOrderItems(order);
+  const first = orderItems[0] || {};
+  const snapshot = first.pizzaSnapshot || {};
+  const customization = first.customization || {};
   const vegCount = Array.isArray(customization.vegetables) ? customization.vegetables.length : 0;
   const status = canonicalStatus(order.orderStatus);
 
@@ -143,10 +146,16 @@ function OrderCard({ order }) {
         </div>
         <div className="order-card__info">
           <h3 className="order-card__name">
-            {snapshot.name || 'Pizza'} <span className="order-card__qty">× {order.quantity}</span>
+            {snapshot.name || 'Pizza'}
+            {orderItems.length === 1 && (
+              <span className="order-card__qty">× {first.quantity}</span>
+            )}
+            {orderItems.length > 1 && (
+              <span className="order-card__qty">+{orderItems.length - 1} more</span>
+            )}
           </h3>
           <p className="order-card__meta">
-            #{String(order._id).slice(-8)} ·{' '}
+            #{getOrderNumber(order)} ·{' '}
             <CalendarDays size={12} /> {formatDate(order.createdAt)}
           </p>
           <p className="order-card__custom">

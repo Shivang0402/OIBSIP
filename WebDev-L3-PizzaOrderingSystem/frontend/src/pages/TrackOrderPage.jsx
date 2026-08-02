@@ -16,10 +16,10 @@ import BackButton from '../components/BackButton';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
 import { getOrderById } from '../services/orderService';
+import { getOrderItems, getOrderNumber } from '../utils/orderItems';
 import { subscribeToOrderStatus } from '../services/socket';
 import {
   canonicalStatus,
-  isTerminalStatus,
   stepIndexForStatus,
   TRACK_STEPS,
 } from '../utils/orderStatus';
@@ -48,7 +48,6 @@ function TrackOrderPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [live, setLive] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,9 +75,7 @@ function TrackOrderPage() {
     if (!id) return undefined;
 
     const unsubscribe = subscribeToOrderStatus(id, (status) => {
-      setLive(true);
       setOrder((current) => (current ? { ...current, orderStatus: status } : current));
-      window.setTimeout(() => setLive(false), 4000);
     });
 
     return unsubscribe;
@@ -119,14 +116,11 @@ function TrackOrderPage() {
     );
   }
 
-  const snapshot = order.pizzaSnapshot || {};
-  const customization = order.customization || {};
-  const vegCount = Array.isArray(customization.vegetables) ? customization.vegetables.length : 0;
+  const orderItems = getOrderItems(order);
   const status = canonicalStatus(order.orderStatus);
   const stepIndex = stepIndexForStatus(order.orderStatus);
   const cancelled = status === 'Cancelled';
-  const delivered = status === 'Delivered';
-  const active = isTerminalStatus(order.orderStatus);
+  const delivered = status === 'Delivered' || status === 'Sent to Delivery';
 
   return (
     <div className="orders-page">
@@ -142,9 +136,9 @@ function TrackOrderPage() {
             </div>
             <div className="track-card__info">
               <span className="track-card__label">
-                Order #{String(order._id).slice(-8).toUpperCase()}
+                Order #{getOrderNumber(order)}
               </span>
-              <h1 className="track-card__title">{delivered ? 'Delivered' : cancelled ? 'Order Cancelled' : 'Live Tracking'}</h1>
+              <h1 className="track-card__title">{delivered ? 'Out for Delivery' : cancelled ? 'Order Cancelled' : 'Live Tracking'}</h1>
               <p className="track-card__meta">
                 <CalendarDays size={13} />
                 Placed on {formatDate(order.createdAt)}
@@ -153,8 +147,7 @@ function TrackOrderPage() {
             <span
               className={`track-badge track-badge--${cancelled ? 'cancelled' : delivered ? 'delivered' : 'live'}`}
             >
-              {live && !active && <span className="track-badge__pulse" aria-hidden="true" />}
-              {live && !active ? 'Status updated' : status}
+              {status}
             </span>
           </div>
 
@@ -167,18 +160,26 @@ function TrackOrderPage() {
             </div>
           ) : (
             <div className="track-banner track-banner--active">
-              <span className="track-banner__spinner" aria-hidden="true" />
               <span>
                 {delivered
-                  ? 'Your pizza has been delivered. Enjoy!'
+                  ? 'Your pizza is out for delivery and will reach you soon. Enjoy!'
                   : `Your order is ${status}. We'll keep you posted in real time.`}
               </span>
             </div>
           )}
 
           <div className="track-timeline">
+            <div className="track-step track-step--done">
+              <div className="track-step__row">
+                <span className="track-step__dot">
+                  <Check size={12} />
+                </span>
+                <span className="track-step__connector" aria-hidden="true" />
+              </div>
+              <span className="track-step__label">Order Placed</span>
+            </div>
             {TRACK_STEPS.map((step, index) => {
-              const done = stepIndex >= 0 ? index <= stepIndex : false;
+              const done = stepIndex >= 0 && index <= stepIndex;
               const isActiveStep = stepIndex >= 0 && index === stepIndex;
               return (
                 <div
@@ -190,7 +191,6 @@ function TrackOrderPage() {
                   <div className="track-step__row">
                     <span className="track-step__dot">
                       {done && <Check size={12} />}
-                      {isActiveStep && !done && <span className="track-step__ripple" aria-hidden="true" />}
                     </span>
                     {index < TRACK_STEPS.length - 1 && (
                       <span className="track-step__connector" aria-hidden="true" />
@@ -210,22 +210,36 @@ function TrackOrderPage() {
               Items
             </h2>
             <div className="track-item">
-              <div className="track-item__thumb" aria-hidden="true">
-                <Pizza size={24} />
-              </div>
-              <div className="track-item__info">
-                <p className="track-item__name">
-                  {snapshot.name || 'Pizza'} <span className="track-item__qty">× {order.quantity}</span>
-                </p>
-                {snapshot.description && (
-                  <p className="track-item__desc">{snapshot.description}</p>
-                )}
-                <p className="track-item__custom">
-                  {customization.base} · {customization.sauce} · {customization.cheese}
-                  {vegCount > 0 && <> · +{vegCount} veg</>}
-                </p>
-              </div>
-              <strong className="track-item__price">{formatPrice(order.totalPrice)}</strong>
+              {orderItems.map((item) => {
+                const snapshot = item.pizzaSnapshot || {};
+                const customization = item.customization || {};
+                const vegCount = Array.isArray(customization.vegetables)
+                  ? customization.vegetables.length
+                  : 0;
+                return (
+                  <div key={item._id || item.pizzaId || snapshot.name} className="track-item__row">
+                    <div className="track-item__thumb" aria-hidden="true">
+                      <Pizza size={24} />
+                    </div>
+                    <div className="track-item__info">
+                      <p className="track-item__name">
+                        {snapshot.name || 'Pizza'}{' '}
+                        <span className="track-item__qty">× {item.quantity}</span>
+                      </p>
+                      {snapshot.description && (
+                        <p className="track-item__desc">{snapshot.description}</p>
+                      )}
+                      <p className="track-item__custom">
+                        {customization.base} · {customization.sauce} · {customization.cheese}
+                        {vegCount > 0 && <> · +{vegCount} veg</>}
+                      </p>
+                    </div>
+                    <strong className="track-item__price">
+                      {formatPrice(item.totalPrice || snapshot.price * item.quantity)}
+                    </strong>
+                  </div>
+                );
+              })}
             </div>
             <div className="track-item__total">
               <span>Total</span>
@@ -272,10 +286,6 @@ function TrackOrderPage() {
               <span className="track-row__value">
                 {order.razorpayPaymentId || '—'}
               </span>
-            </div>
-            <div className="track-row">
-              <span>Razorpay Order</span>
-              <span className="track-row__value">{order.razorpayOrderId || '—'}</span>
             </div>
             <div className="track-row">
               <span>Paid on</span>

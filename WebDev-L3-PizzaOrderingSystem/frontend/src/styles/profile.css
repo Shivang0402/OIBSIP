@@ -103,13 +103,18 @@
 }
 
 .profile-summary::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover), var(--color-primary));
+  background: linear-gradient(
+    90deg,
+    var(--color-primary),
+    var(--color-primary-hover),
+    var(--color-primary)
+  );
 }
 
 .profile-summary__avatar {
@@ -214,7 +219,9 @@
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .profile-name-form__save {

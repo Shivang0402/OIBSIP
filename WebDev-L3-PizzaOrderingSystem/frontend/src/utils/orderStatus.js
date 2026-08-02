@@ -7,16 +7,9 @@ export function canonicalStatus(status) {
   return STATUS_ALIASES[status] || status || 'Pending';
 }
 
-export const TRACK_STEPS = [
-  'Pending',
-  'Confirmed',
-  'Order Received',
-  'In Kitchen',
-  'On the way',
-  'Delivered',
-];
+export const TRACK_STEPS = ['Order Received', 'In Kitchen', 'Sent to Delivery'];
 
-export const TERMINAL_STATUSES = ['Cancelled', 'Delivered'];
+export const TERMINAL_STATUSES = ['Cancelled', 'Sent to Delivery', 'Delivered'];
 
 export function stepIndexForStatus(status) {
   return TRACK_STEPS.indexOf(canonicalStatus(status));

@@ -1,17 +1,15 @@
 const mongoose = require("mongoose");
-const orderSchema = new mongoose.Schema(
+
+const orderItemSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-    pizza: {
+    pizzaId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Pizza",
+      default: null,
     },
-    quantity: {
-      type: Number,
-      min: 1,
+    isCustom: {
+      type: Boolean,
+      default: false,
     },
     pizzaSnapshot: {
       name: {
@@ -24,12 +22,17 @@ const orderSchema = new mongoose.Schema(
       },
       image: {
         type: String,
-        required: true,
+        default: "",
       },
       price: {
         type: Number,
         required: true,
       },
+    },
+    quantity: {
+      type: Number,
+      min: 1,
+      required: true,
     },
     customization: {
       base: {
@@ -49,6 +52,31 @@ const orderSchema = new mongoose.Schema(
           type: String,
         },
       ],
+    },
+    totalPrice: {
+      type: Number,
+      required: true,
+    },
+  },
+  { _id: false },
+);
+
+const orderSchema = new mongoose.Schema(
+  {
+    orderNumber: {
+      type: String,
+      required: true,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    items: {
+      type: [orderItemSchema],
+      default: [],
     },
     totalPrice: {
       type: Number,
@@ -78,17 +106,7 @@ const orderSchema = new mongoose.Schema(
 
     orderStatus: {
       type: String,
-      enum: [
-        "Pending",
-        "Confirmed",
-        "Order Recevied",
-        "Order Received",
-        "In Kitchen",
-        "On the way",
-        "Cancelled",
-        "Delievered",
-        "Delivered",
-      ],
+      enum: ["Pending", "Order Received", "In Kitchen", "Sent to Delivery", "Cancelled"],
       default: "Pending",
     },
 
