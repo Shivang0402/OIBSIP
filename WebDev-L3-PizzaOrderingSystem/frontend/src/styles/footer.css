@@ -64,7 +64,6 @@
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: #fdba74;
 }
 
@@ -75,7 +74,6 @@
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: #f97316;
 }
 
@@ -85,7 +83,7 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
 }
 
 .footer-link {
@@ -102,10 +100,14 @@
 
 .footer__list--contact li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 9px;
   font-size: 13.5px;
   color: #a8a29e;
+}
+
+.footer__list--contact li span {
+  flex: 1;
 }
 
 .footer-contact__icon {

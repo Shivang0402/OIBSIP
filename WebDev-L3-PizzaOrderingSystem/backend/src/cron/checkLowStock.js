@@ -67,7 +67,6 @@ cron.schedule("* * * * *", async () => {
       item.lowStockAlertSent = true;
       await item.save();
     }
-    console.log("Low stock alert email sent.");
   } catch (error) {
     console.error(error);
   }

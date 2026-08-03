@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Pizza } from 'lucide-react';
+import { ArrowRight, ChefHat, Flame, Pizza, Sprout } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
 import ActiveOrderStrip from '../components/ActiveOrderStrip';
 import BottomNav from '../components/BottomNav';
@@ -81,7 +81,7 @@ function Home() {
             </h2>
           </div>
           <div className="home-hero__content">
-            <span className="home-hero__chip">Freshly baked today</span>
+            <span className="home-hero__chip">Crafted in every slice</span>
             <h1 className="home-hero__title">
               Handcrafted <span>Pizza</span>. Delivered Fresh.
             </h1>
@@ -102,13 +102,18 @@ function Home() {
 
         <section className="home-builder-banner">
           <div className="home-builder-banner__content">
-            <span className="home-builder-banner__chip">Pizza Customizer</span>
-            <h2 className="home-builder-banner__title">Build Your Own Pizza</h2>
+            <span className="home-builder-banner__chip">
+              <ChefHat size={13} />
+              Pizza Customizer
+            </span>
+            <h2 className="home-builder-banner__title">
+              Build Your <span>Own Pizza</span>
+            </h2>
             <p className="home-builder-banner__text">
               Pick your base, sauce, cheese and toppings — create your perfect slice from scratch.
             </p>
             <button
-              className="btn btn--light"
+              className="btn btn--primary"
               type="button"
               onClick={() => navigate('/pizza-builder')}
             >
@@ -117,7 +122,21 @@ function Home() {
             </button>
           </div>
           <div className="home-builder-banner__art" aria-hidden="true">
-            <Pizza size={190} />
+            <div className="home-builder-banner__ring" />
+            <img
+              className="home-builder-banner__pizza"
+              src="/uploads/pizzas/margherita.jpg"
+              alt=""
+            />
+            <span className="home-builder-banner__topping home-builder-banner__topping--1">
+              <Sprout size={16} />
+            </span>
+            <span className="home-builder-banner__topping home-builder-banner__topping--2">
+              <Flame size={16} />
+            </span>
+            <span className="home-builder-banner__topping home-builder-banner__topping--3">
+              <ChefHat size={16} />
+            </span>
           </div>
         </section>
 
