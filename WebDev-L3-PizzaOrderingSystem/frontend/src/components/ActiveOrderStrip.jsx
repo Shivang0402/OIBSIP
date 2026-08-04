@@ -4,6 +4,7 @@ import { ArrowRight, ReceiptText } from 'lucide-react';
 import { getUser } from '../services/session';
 import { getOrders } from '../services/orderService';
 import { getOrderItemsLabel, getOrderNumber } from '../utils/orderItems';
+import { subscribeToOrderStatus } from '../services/socket';
 import {
   canonicalStatus,
   isTerminalStatus,
@@ -42,6 +43,20 @@ function ActiveOrderStrip() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!order?._id) return undefined;
+
+    const unsubscribe = subscribeToOrderStatus(order._id, (status) => {
+      setOrder((current) => {
+        if (!current) return current;
+        if (isTerminalStatus(status)) return null;
+        return { ...current, orderStatus: status };
+      });
+    });
+
+    return unsubscribe;
+  }, [order?._id]);
 
   if (!loaded || !order) return null;
 
