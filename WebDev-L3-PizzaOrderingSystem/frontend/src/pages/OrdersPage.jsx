@@ -1,13 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarDays, History, Package, Pizza, ReceiptText, Truck } from 'lucide-react';
+import {
+  CalendarDays,
+  History,
+  Loader2,
+  Package,
+  Pizza,
+  ReceiptText,
+  RefreshCw,
+  Truck,
+} from 'lucide-react';
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
-import { getOrders } from '../services/orderService';
+import { getOrders, markPaymentFailed } from '../services/orderService';
+import { retryOrderPayment, PAYMENT_DISMISSED } from '../services/paymentService';
 import { getOrderItems, getOrderNumber } from '../utils/orderItems';
-import { canonicalStatus, isCurrentOrder } from '../utils/orderStatus';
+import { canonicalStatus, isCurrentOrder, needsPayment } from '../utils/orderStatus';
 import '../styles/orders.css';
 
 function formatPrice(price) {
@@ -50,8 +60,22 @@ function OrdersPage() {
     };
   }, []);
 
-  const currentOrders = orders.filter(isCurrentOrder);
-  const previousOrders = orders.filter((order) => !isCurrentOrder(order));
+  async function refreshOrders() {
+    try {
+      const data = await getOrders();
+      setOrders(data.orders || []);
+    } catch (refreshError) {
+      setError(refreshError.message);
+    }
+  }
+
+  const unpaidOrders = orders.filter(needsPayment);
+  const currentOrders = orders.filter(
+    (order) => !needsPayment(order) && isCurrentOrder(order),
+  );
+  const previousOrders = orders.filter(
+    (order) => !needsPayment(order) && !isCurrentOrder(order),
+  );
 
   return (
     <div className="orders-page">
@@ -96,6 +120,17 @@ function OrdersPage() {
           </div>
         )}
 
+        {!loading && !error && unpaidOrders.length > 0 && (
+          <section className="orders-group">
+            <h2 className="orders-group__title">Payment Required</h2>
+            <div className="orders-list">
+              {unpaidOrders.map((order) => (
+                <OrderCard key={order._id} order={order} onChange={refreshOrders} />
+              ))}
+            </div>
+          </section>
+        )}
+
         {!loading && !error && currentOrders.length > 0 && (
           <section className="orders-group">
             <h2 className="orders-group__title">Current Orders</h2>
@@ -125,17 +160,50 @@ function OrdersPage() {
   );
 }
 
-function OrderCard({ order }) {
+function OrderCard({ order, onChange }) {
   const navigate = useNavigate();
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState('');
   const orderItems = getOrderItems(order);
   const first = orderItems[0] || {};
   const snapshot = first.pizzaSnapshot || {};
   const customization = first.customization || {};
   const vegCount = Array.isArray(customization.vegetables) ? customization.vegetables.length : 0;
   const status = canonicalStatus(order.orderStatus);
+  const unpaid = needsPayment(order);
 
   function handleOpen() {
     navigate(`/orders/${order._id}`);
+  }
+
+  async function handleRetry(event) {
+    event.stopPropagation();
+    setRetrying(true);
+    setRetryError('');
+    try {
+      await retryOrderPayment(order._id, getOrderNumber(order));
+      if (onChange) await onChange();
+    } catch (retryFailure) {
+      if (retryFailure.message === PAYMENT_DISMISSED) {
+        // Popup closed without completing; order stays pending.
+      } else {
+        setRetryError(
+          retryFailure.description ||
+            retryFailure.message ||
+            'Payment failed. Please try again.',
+        );
+        if (order.paymentStatus !== 'Failed' && onChange) {
+          try {
+            await markPaymentFailed(order._id);
+            await onChange();
+          } catch {
+            // ignore
+          }
+        }
+      }
+    } finally {
+      setRetrying(false);
+    }
   }
 
   return (
@@ -164,32 +232,62 @@ function OrderCard({ order }) {
           </p>
         </div>
         <div className="order-card__side">
-          <span className="order-badge order-badge--status">{status}</span>
-          <span
-            className={`order-badge order-badge--payment order-badge--payment-${String(
-              order.paymentStatus || 'pending',
-            ).toLowerCase()}`}
-          >
-            {order.paymentStatus}
-          </span>
+          {unpaid ? (
+            <span
+              className={`order-badge order-badge--payment order-badge--payment-${String(
+                order.paymentStatus || 'pending',
+              ).toLowerCase()}`}
+            >
+              {order.paymentStatus || 'Pending'}
+            </span>
+          ) : (
+            <span className="order-badge order-badge--status">{status}</span>
+          )}
           <strong className="order-card__price">{formatPrice(order.totalPrice)}</strong>
         </div>
       </div>
       <div className="order-card__actions">
-        <button className="order-card__track" type="button" onClick={handleOpen}>
-          {isCurrentOrder(order) ? (
-            <>
-              <Truck size={15} />
-              Track Order
-            </>
-          ) : (
-            <>
-              <History size={15} />
+        {unpaid ? (
+          <>
+            <button
+              className="order-card__track"
+              type="button"
+              onClick={handleRetry}
+              disabled={retrying}
+            >
+              {retrying ? (
+                <Loader2 className="orders-state__spin" size={15} />
+              ) : (
+                <RefreshCw size={15} />
+              )}
+              {retrying
+                ? 'Retrying…'
+                : order.paymentStatus === 'Failed'
+                  ? 'Retry Payment'
+                  : 'Pay Now'}
+            </button>
+            <button className="order-card__view" type="button" onClick={handleOpen}>
+              <ReceiptText size={15} />
               View Order
-            </>
-          )}
-        </button>
+            </button>
+          </>
+        ) : (
+          <button className="order-card__track" type="button" onClick={handleOpen}>
+            {isCurrentOrder(order) ? (
+              <>
+                <Truck size={15} />
+                Track Order
+              </>
+            ) : (
+              <>
+                <History size={15} />
+                View Order
+              </>
+            )}
+          </button>
+        )}
       </div>
+      {retryError && <p className="order-card__error">{retryError}</p>}
     </article>
   );
 }

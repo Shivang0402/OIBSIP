@@ -1,3 +1,6 @@
+import { retryPayment, verifyPayment } from './orderService';
+import { getUser } from './session';
+
 const RAZORPAY_SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js';
 
 export const PAYMENT_DISMISSED = 'PAYMENT_DISMISSED';
@@ -67,4 +70,45 @@ export function openRazorpayCheckout({
         }
       }),
   );
+}
+
+export async function completeOrderPayment({
+  key,
+  amount,
+  currency,
+  orderId,
+  orderNumber,
+}) {
+  const user = getUser();
+
+  const response = await openRazorpayCheckout({
+    key,
+    amount,
+    currency,
+    orderId,
+    name: 'PizzaNova',
+    description: orderNumber ? `Order ${orderNumber}` : '',
+    prefill: {
+      name: user?.name || '',
+      email: user?.email || '',
+    },
+  });
+
+  return verifyPayment({
+    razorpay_order_id: response.razorpay_order_id,
+    razorpay_payment_id: response.razorpay_payment_id,
+    razorpay_signature: response.razorpay_signature,
+  });
+}
+
+export async function retryOrderPayment(orderId, orderNumber) {
+  const data = await retryPayment(orderId);
+
+  return completeOrderPayment({
+    key: data.key,
+    amount: data.amount,
+    currency: data.currency,
+    orderId: data.razorpayOrderId,
+    orderNumber: orderNumber || data.order?.orderNumber,
+  });
 }

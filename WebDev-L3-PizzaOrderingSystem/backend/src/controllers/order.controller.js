@@ -212,6 +212,87 @@ const placeOrder = async (req, res) => {
   }
 };
 
+const markPaymentFailed = async (req, res) => {
+  try {
+    const query =
+      req.user.role === "admin"
+        ? { _id: req.params.id }
+        : { _id: req.params.id, user: req.user.id };
+
+    const order = await Order.findOne(query);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found.",
+      });
+    }
+
+    if (order.paymentStatus === "Paid") {
+      return res.status(400).json({
+        message: "This order is already paid.",
+      });
+    }
+
+    order.paymentStatus = "Failed";
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+const retryPayment = async (req, res) => {
+  try {
+    const query =
+      req.user.role === "admin"
+        ? { _id: req.params.id }
+        : { _id: req.params.id, user: req.user.id };
+
+    const order = await Order.findOne(query);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found.",
+      });
+    }
+
+    if (order.paymentStatus === "Paid") {
+      return res.status(400).json({
+        message: "This order is already paid.",
+      });
+    }
+
+    if (!order.razorpayOrderId) {
+      const razorpayOrder = await razorpay.orders.create({
+        amount: order.totalPrice * 100,
+        currency: "INR",
+        receipt: order._id.toString(),
+      });
+      order.razorpayOrderId = razorpayOrder.id;
+      await order.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      order,
+      razorpayOrderId: order.razorpayOrderId,
+      amount: order.totalPrice * 100,
+      currency: "INR",
+      key: process.env.RAZORPAY_API_KEY,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 const verifyPayment = async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     req.body;
@@ -424,6 +505,8 @@ const updateOrderStatus = async (req, res) => {
 
 module.exports = {
   placeOrder,
+  markPaymentFailed,
+  retryPayment,
   verifyPayment,
   getOrders,
   getOrderById,

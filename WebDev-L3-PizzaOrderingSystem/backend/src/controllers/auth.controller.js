@@ -4,15 +4,53 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const transporter = require("../config/mailer");
 const { renderEmail } = require("../utils/emailTemplate");
+const {
+  isValidEmail,
+  isValidPhone,
+  isStrongEnough,
+  MIN_PASSWORD_LENGTH,
+  MAX_NAME_LENGTH,
+} = require("../utils/validators");
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const name = String(req.body.name || "").trim();
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const password = String(req.body.password || "");
+    const phone = String(req.body.phone || "").trim();
 
     if (!name || !email || !password || !phone) {
       return res.status(400).json({
         success: false,
         message: "All fields are mandatory.",
+      });
+    }
+
+    if (name.length < 2 || name.length > MAX_NAME_LENGTH) {
+      return res.status(400).json({
+        success: false,
+        message: `Name must be between 2 and ${MAX_NAME_LENGTH} characters.`,
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter a valid email address.",
+      });
+    }
+
+    if (!isStrongEnough(password)) {
+      return res.status(400).json({
+        success: false,
+        message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+      });
+    }
+
+    if (!isValidPhone(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter a valid 10-digit phone number.",
       });
     }
 
@@ -76,41 +114,60 @@ const registerUser = async (req, res) => {
 };
 
 const verifyEmail = async (req, res) => {
-  const { token } = req.params;
+  try {
+    const { token } = req.params;
 
-  const user = await User.findOne({
-    verificationToken: token,
-  });
+    if (!token) {
+      return res.status(400).json({
+        message: "Verification token is required.",
+      });
+    }
 
-  if (!user) {
-    return res.status(400).json({
-      message: "Invalid token.",
+    const user = await User.findOne({
+      verificationToken: token,
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid token.",
+      });
+    }
+
+    if (user.verificationTokenExpires < Date.now()) {
+      return res.status(400).json({
+        message: "Token expired.",
+      });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationLink = undefined;
+
+    await user.save();
+
+    return res.status(201).json({
+      message: "Email verified successfully. You can login now.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
     });
   }
-
-  if (user.verificationTokenExpires < Date.now()) {
-    return res.status(400).json({
-      message: "Token expired.",
-    });
-  }
-
-  user.isVerified = true;
-  user.verificationToken = undefined;
-  user.verificationLink = undefined;
-
-  await user.save();
-
-  return res.status(201).json({
-    message: "Email verified successfully. You can login now.",
-  });
 };
 
 const userLogin = async (req, res) => {
-  const { email, password } = req.body;
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const password = String(req.body.password || "");
   try {
     if (!email || !password) {
       return res.status(400).json({
         message: "Email and password are required.",
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        message: "Enter a valid email address.",
       });
     }
 
@@ -232,7 +289,19 @@ const forgotPassword = async (req, res) => {
   try {
     const passToken = crypto.randomBytes(32).toString("hex");
     const passTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
-    const { email } = req.body;
+    const email = String(req.body.email || "").trim().toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required.",
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        message: "Enter a valid email address.",
+      });
+    }
 
     const user = await User.findOne({
       email: email,
@@ -283,11 +352,30 @@ const forgotPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   const { token } = req.params;
-  const { newPass, confirmNewPass } = req.body;
+  const newPass = String(req.body.newPass || "");
+  const confirmNewPass = String(req.body.confirmNewPass || "");
+
+  if (!token) {
+    return res.status(400).json({
+      message: "Reset token is required.",
+    });
+  }
+
+  if (!newPass || !confirmNewPass) {
+    return res.status(400).json({
+      message: "All fields are required.",
+    });
+  }
 
   if (newPass !== confirmNewPass) {
     return res.status(400).json({
       message: "Passwords do not match",
+    });
+  }
+
+  if (!isStrongEnough(newPass)) {
+    return res.status(400).json({
+      message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
     });
   }
 
@@ -318,11 +406,25 @@ const resetPassword = async (req, res) => {
 };
 
 const changePassword = async (req, res) => {
-  const { currentPass, newPass, confirmNewPass } = req.body;
+  const currentPass = String(req.body.currentPass || "");
+  const newPass = String(req.body.newPass || "");
+  const confirmNewPass = String(req.body.confirmNewPass || "");
   try {
+    if (!currentPass || !newPass || !confirmNewPass) {
+      return res.status(400).json({
+        message: "All fields are required.",
+      });
+    }
+
     if (newPass !== confirmNewPass) {
       return res.status(400).json({
         message: "Passwords do not match.",
+      });
+    }
+
+    if (!isStrongEnough(newPass)) {
+      return res.status(400).json({
+        message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
       });
     }
 

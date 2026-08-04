@@ -3,11 +3,13 @@ import { useParams } from 'react-router-dom';
 import {
   CalendarDays,
   Check,
+  CreditCard,
   Loader2,
   MapPin,
   Phone,
   Pizza,
   ReceiptText,
+  RefreshCw,
   Truck,
   XCircle,
 } from 'lucide-react';
@@ -15,11 +17,13 @@ import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
-import { getOrderById } from '../services/orderService';
+import { getOrderById, markPaymentFailed } from '../services/orderService';
+import { retryOrderPayment, PAYMENT_DISMISSED } from '../services/paymentService';
 import { getOrderItems, getOrderNumber } from '../utils/orderItems';
 import { subscribeToOrderStatus } from '../services/socket';
 import {
   canonicalStatus,
+  needsPayment,
   stepIndexForStatus,
   TRACK_STEPS,
 } from '../utils/orderStatus';
@@ -48,6 +52,8 @@ function TrackOrderPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -70,6 +76,48 @@ function TrackOrderPage() {
       cancelled = true;
     };
   }, [id]);
+
+  async function reloadOrder() {
+    try {
+      const data = await getOrderById(id);
+      setOrder(data.order);
+      setError('');
+    } catch (loadError) {
+      setError(loadError.message);
+    }
+  }
+
+  async function handleRetryPayment() {
+    if (!order) return;
+    setRetrying(true);
+    setRetryError('');
+    try {
+      await retryOrderPayment(order._id, getOrderNumber(order));
+      await reloadOrder();
+    } catch (retryFailure) {
+      if (retryFailure.message === PAYMENT_DISMISSED) {
+        // Popup closed without completing; order stays pending.
+      } else {
+        setRetryError(
+          retryFailure.description ||
+            retryFailure.message ||
+            'Payment failed. Please try again.',
+        );
+        if (order.paymentStatus !== 'Failed') {
+          try {
+            await markPaymentFailed(order._id);
+            setOrder((current) =>
+              current ? { ...current, paymentStatus: 'Failed' } : current,
+            );
+          } catch {
+            // ignore
+          }
+        }
+      }
+    } finally {
+      setRetrying(false);
+    }
+  }
 
   useEffect(() => {
     if (!id) return undefined;
@@ -121,6 +169,12 @@ function TrackOrderPage() {
   const stepIndex = stepIndexForStatus(order.orderStatus);
   const cancelled = status === 'Cancelled';
   const delivered = status === 'Delivered' || status === 'Sent to Delivery';
+  const unpaid = needsPayment(order);
+  const HeadIcon = unpaid
+    ? order.paymentStatus === 'Failed'
+      ? XCircle
+      : CreditCard
+    : Truck;
 
   return (
     <div className="orders-page">
@@ -132,26 +186,45 @@ function TrackOrderPage() {
         <section className="track-card">
           <div className="track-card__head">
             <div className="track-card__icon" aria-hidden="true">
-              <Truck size={24} />
+              <HeadIcon size={24} />
             </div>
             <div className="track-card__info">
               <span className="track-card__label">
                 Order #{getOrderNumber(order)}
               </span>
-              <h1 className="track-card__title">{delivered ? 'Out for Delivery' : cancelled ? 'Order Cancelled' : 'Live Tracking'}</h1>
+              <h1 className="track-card__title">
+                {unpaid
+                  ? order.paymentStatus === 'Failed'
+                    ? 'Payment Failed'
+                    : 'Payment Pending'
+                  : delivered
+                    ? 'Out for Delivery'
+                    : cancelled
+                      ? 'Order Cancelled'
+                      : 'Live Tracking'}
+              </h1>
               <p className="track-card__meta">
                 <CalendarDays size={13} />
-                Placed on {formatDate(order.createdAt)}
+                {unpaid ? 'Created on' : 'Placed on'} {formatDate(order.createdAt)}
               </p>
             </div>
             <span
-              className={`track-badge track-badge--${cancelled ? 'cancelled' : delivered ? 'delivered' : 'live'}`}
+              className={`track-badge track-badge--${unpaid || cancelled ? 'cancelled' : delivered ? 'delivered' : 'live'}`}
             >
-              {status}
+              {unpaid ? order.paymentStatus : status}
             </span>
           </div>
 
-          {cancelled ? (
+          {unpaid ? (
+            <div className="track-banner track-banner--cancelled">
+              <XCircle size={20} />
+              <span>
+                {order.paymentStatus === 'Failed'
+                  ? 'The payment failed, so your order has not been placed yet. Retry the payment to confirm it.'
+                  : 'Your order will be confirmed once the payment is completed. Pay now to proceed.'}
+              </span>
+            </div>
+          ) : cancelled ? (
             <div className="track-banner track-banner--cancelled">
               <XCircle size={20} />
               <span>
@@ -168,39 +241,62 @@ function TrackOrderPage() {
             </div>
           )}
 
-          <div className="track-timeline">
-            <div className="track-step track-step--done">
-              <div className="track-step__row">
-                <span className="track-step__dot">
-                  <Check size={12} />
-                </span>
-                <span className="track-step__connector" aria-hidden="true" />
-              </div>
-              <span className="track-step__label">Order Placed</span>
+          {unpaid ? (
+            <div className="track-retry">
+              <button
+                className="track-retry__button"
+                type="button"
+                onClick={handleRetryPayment}
+                disabled={retrying}
+              >
+                {retrying ? (
+                  <Loader2 className="orders-state__spin" size={16} />
+                ) : (
+                  <RefreshCw size={16} />
+                )}
+                {retrying
+                  ? 'Retrying…'
+                  : order.paymentStatus === 'Failed'
+                    ? 'Retry Payment'
+                    : 'Pay Now'}
+              </button>
+              {retryError && <p className="track-retry__error">{retryError}</p>}
             </div>
-            {TRACK_STEPS.map((step, index) => {
-              const done = stepIndex >= 0 && index <= stepIndex;
-              const isActiveStep = stepIndex >= 0 && index === stepIndex;
-              return (
-                <div
-                  key={step}
-                  className={`track-step${done ? ' track-step--done' : ''}${
-                    isActiveStep ? ' track-step--active' : ''
-                  }${cancelled && done ? ' track-step--cancelled' : ''}`}
-                >
-                  <div className="track-step__row">
-                    <span className="track-step__dot">
-                      {done && <Check size={12} />}
-                    </span>
-                    {index < TRACK_STEPS.length - 1 && (
-                      <span className="track-step__connector" aria-hidden="true" />
-                    )}
-                  </div>
-                  <span className="track-step__label">{step}</span>
+          ) : (
+            <div className="track-timeline">
+              <div className="track-step track-step--done">
+                <div className="track-step__row">
+                  <span className="track-step__dot">
+                    <Check size={12} />
+                  </span>
+                  <span className="track-step__connector" aria-hidden="true" />
                 </div>
-              );
-            })}
-          </div>
+                <span className="track-step__label">Order Placed</span>
+              </div>
+              {TRACK_STEPS.map((step, index) => {
+                const done = stepIndex >= 0 && index <= stepIndex;
+                const isActiveStep = stepIndex >= 0 && index === stepIndex;
+                return (
+                  <div
+                    key={step}
+                    className={`track-step${done ? ' track-step--done' : ''}${
+                      isActiveStep ? ' track-step--active' : ''
+                    }${cancelled && done ? ' track-step--cancelled' : ''}`}
+                  >
+                    <div className="track-step__row">
+                      <span className="track-step__dot">
+                        {done && <Check size={12} />}
+                      </span>
+                      {index < TRACK_STEPS.length - 1 && (
+                        <span className="track-step__connector" aria-hidden="true" />
+                      )}
+                    </div>
+                    <span className="track-step__label">{step}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <div className="track-grid">

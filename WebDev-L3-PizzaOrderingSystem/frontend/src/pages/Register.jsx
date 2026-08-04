@@ -32,6 +32,7 @@ function Register() {
     const nextErrors = {};
 
     if (!isRequired(form.name)) nextErrors.name = 'Name is required.';
+    else if (form.name.trim().length < 2) nextErrors.name = 'Name must be at least 2 characters.';
     if (!isRequired(form.email)) nextErrors.email = 'Email is required.';
     else if (!isValidEmail(form.email)) nextErrors.email = 'Enter a valid email address.';
     if (!isRequired(form.password)) nextErrors.password = 'Password is required.';
@@ -83,6 +84,7 @@ function Register() {
             label="Full Name"
             name="name"
             placeholder="Your name"
+            maxLength={50}
             value={form.name}
             onChange={handleChange}
             error={errors.name}

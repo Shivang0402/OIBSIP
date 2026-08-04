@@ -444,6 +444,15 @@
   color: #b45309;
 }
 
+.checkout-success__failed {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--color-accent);
+}
+
 .checkout-success__paid {
   display: inline-flex;
   align-items: center;

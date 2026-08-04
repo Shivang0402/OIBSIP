@@ -263,7 +263,9 @@
 
 .order-card__actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 10px;
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px dashed var(--color-border);
@@ -288,9 +290,45 @@
     transform var(--transition);
 }
 
-.order-card__track:hover {
+.order-card__track:hover:not(:disabled) {
   background: var(--color-primary-hover);
   transform: translateY(-1px);
+}
+
+.order-card__track:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.order-card__view {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--pn-surface, var(--color-white));
+  color: var(--color-charcoal);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    transform var(--transition);
+}
+
+.order-card__view:hover {
+  background: var(--pn-surface-low, #f8fafc);
+  transform: translateY(-1px);
+}
+
+.order-card__error {
+  margin-top: 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent);
 }
 
 /* Track page */
@@ -645,6 +683,49 @@
   color: var(--color-accent);
 }
 
+.track-retry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.track-retry__button {
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    transform var(--transition);
+}
+
+.track-retry__button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.track-retry__button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.track-retry__error {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
 @media (min-width: 900px) {
   .track-grid {
     grid-template-columns: 1fr 1fr;
@@ -673,7 +754,8 @@
     justify-content: stretch;
   }
 
-  .order-card__track {
+  .order-card__track,
+  .order-card__view {
     flex: 1;
     justify-content: center;
   }

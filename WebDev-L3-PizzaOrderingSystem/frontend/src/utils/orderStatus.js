@@ -22,3 +22,7 @@ export function isTerminalStatus(status) {
 export function isCurrentOrder(order) {
   return !TERMINAL_STATUSES.includes(canonicalStatus(order.orderStatus));
 }
+
+export function needsPayment(order) {
+  return Boolean(order) && order.paymentStatus !== 'Paid';
+}

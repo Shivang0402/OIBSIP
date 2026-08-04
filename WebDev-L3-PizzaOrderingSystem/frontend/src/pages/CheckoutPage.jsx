@@ -16,12 +16,8 @@ import BackButton from '../components/BackButton';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
 import { getCart, clearCart } from '../services/cartService';
-import { placeOrder, verifyPayment } from '../services/orderService';
-import {
-  openRazorpayCheckout,
-  PAYMENT_DISMISSED,
-} from '../services/paymentService';
-import { getUser } from '../services/session';
+import { placeOrder, markPaymentFailed } from '../services/orderService';
+import { completeOrderPayment, PAYMENT_DISMISSED } from '../services/paymentService';
 import { isRequired } from '../utils/validators';
 import '../styles/checkout.css';
 
@@ -137,25 +133,13 @@ function CheckoutPage() {
     setPaymentState('paying');
     setPaymentError('');
 
-    const user = getUser();
     try {
-      const response = await openRazorpayCheckout({
+      const verified = await completeOrderPayment({
         key: order.key,
         amount: order.amount,
         currency: order.currency,
         orderId: order.razorpayOrderId,
-        name: 'PizzaNova',
-        description: `Order ${order.orderNumber}`,
-        prefill: {
-          name: user?.name || '',
-          email: user?.email || '',
-        },
-      });
-
-      const verified = await verifyPayment({
-        razorpay_order_id: response.razorpay_order_id,
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_signature: response.razorpay_signature,
+        orderNumber: order.orderNumber,
       });
 
       setPlacedOrder((current) => ({
@@ -166,6 +150,11 @@ function CheckoutPage() {
     } catch (error) {
       if (error.message === PAYMENT_DISMISSED) setPaymentState('pending');
       else {
+        try {
+          await markPaymentFailed(order.orderId);
+        } catch {
+          // ignore
+        }
         setPaymentError(
           error.description ||
             error.message ||
@@ -221,8 +210,9 @@ function CheckoutPage() {
       : paying
         ? 'Complete the payment in the popup window to confirm your order.'
         : failed
-          ? paymentError || 'Your order is saved, but the payment did not go through. Try again below.'
-          : 'Your order is saved. Complete the payment to confirm it.';
+          ? paymentError ||
+            'The payment did not go through, so your order has not been placed. Retry the payment to confirm it.'
+          : 'The payment window was closed before completion. Complete the payment to confirm your order.';
 
     return (
       <div className="checkout-page">
@@ -250,6 +240,8 @@ function CheckoutPage() {
                     <BadgeCheck size={12} />
                     Paid
                   </span>
+                ) : failed ? (
+                  <span className="checkout-success__failed">Failed</span>
                 ) : (
                   <span className="checkout-success__pending">Pending</span>
                 )}
