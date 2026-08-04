@@ -17,7 +17,7 @@ router.post(
   authMiddleware,
   authorize("user", "admin"),
   placeOrder,
-); //user
+);
 
 router.post(
   "/verifyPayment",

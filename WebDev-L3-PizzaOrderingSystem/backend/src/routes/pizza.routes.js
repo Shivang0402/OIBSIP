@@ -8,22 +8,12 @@ const {
 } = require("../controllers/pizza.controller");
 const { authMiddleware, authorize } = require("../middlewares/authMiddleware");
 
-router.post("/addPizza", authMiddleware, authorize("user", "admin"), addPizza);
+router.post("/addPizza", authMiddleware, authorize("admin"), addPizza);
 
-router.get("/getPizza", authMiddleware, authorize("user", "admin"), getPizza);
+router.get("/getPizza", getPizza);
 
-router.get(
-  "/getPizza/:id",
-  authMiddleware,
-  authorize("user", "admin"),
-  getPizzaById,
-);
+router.get("/getPizza/:id", getPizzaById);
 
-router.patch(
-  "/updatePizza/:id",
-  authMiddleware,
-  authorize("admin", "user"),
-  updatePizza,
-);
+router.patch("/updatePizza/:id", authMiddleware, authorize("admin"), updatePizza);
 
 module.exports = router;

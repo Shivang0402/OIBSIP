@@ -3,21 +3,17 @@ const connectDb = require("../config/db");
 const Inventory = require("../models/inventoryModel");
 
 const APP_ITEMS = [
-  // bases
   ...["Thin Crust", "Thick Crust", "Cheese Burst", "Stuffed Crust", "Whole Wheat"].map(
     (name) => ({ name, category: "base", unit: "pieces" }),
   ),
-  // sauces
   ...["Classic Tomato", "Spicy Tomato", "BBQ", "Pesto", "White Garlic"].map((name) => ({
     name,
     category: "sauce",
     unit: "litre",
   })),
-  // cheeses
   ...["Mozzarella", "Cheddar", "Parmesan", "Processed Cheese", "Vegan Cheese"].map(
     (name) => ({ name, category: "cheese", unit: "kg" }),
   ),
-  // vegetables
   ...[
     "Onion",
     "Tomato",

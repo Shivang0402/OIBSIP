@@ -9,7 +9,6 @@ const {
   adminLogin,
   userProfile,
   updateProfile,
-  inventory,
   forgotPassword,
   resetPassword,
   changePassword,
@@ -29,6 +28,5 @@ router.post(
 );
 router.get("/profile", authMiddleware, userProfile);
 router.patch("/profile", authMiddleware, authorize("user", "admin"), updateProfile);
-router.get("/inventory", authMiddleware, authorize("admin", "user"), inventory);
 
 module.exports = router;

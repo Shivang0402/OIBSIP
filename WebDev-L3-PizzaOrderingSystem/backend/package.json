@@ -18,16 +18,15 @@
   "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "cookie-parser": "^1.4.7",
-    "corn": "^0.0.1",
     "cors": "^2.8.6",
-    "cron": "^4.4.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.4",
     "node-cron": "^4.6.0",
-    "nodemailer": "^9.0.3"
+    "nodemailer": "^9.0.3",
+    "razorpay": "^2.9.8",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

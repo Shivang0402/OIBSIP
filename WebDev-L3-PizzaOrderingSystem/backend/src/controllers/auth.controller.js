@@ -343,14 +343,7 @@ const updateProfile = async (req, res) => {
   }
 };
 
-const inventory = async (req, res) => {
-  return res.status(200).json({
-    message: "Welcome to the inventory.",
-  });
-};
-
-const forgotPassword = async (req, res) => {
-  try {
+const forgotPassword = async (req, res) => {  try {
     const passToken = crypto.randomBytes(32).toString("hex");
     const passTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
     const email = String(req.body.email || "").trim().toLowerCase();
@@ -528,7 +521,6 @@ module.exports = {
   adminLogin,
   userProfile,
   updateProfile,
-  inventory,
   forgotPassword,
   resetPassword,
   changePassword,

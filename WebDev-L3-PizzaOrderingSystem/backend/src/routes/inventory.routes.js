@@ -11,29 +11,14 @@ const { authMiddleware, authorize } = require("../middlewares/authMiddleware");
 router.patch(
   "/updateInventory/:id",
   authMiddleware,
-  authorize("admin", "user"), // User allowed as of now to test updateInventory, to be changed after creating an admin account.
+  authorize("admin"),
   updateInventory,
 );
 
-router.post(
-  "/addInventory",
-  authMiddleware,
-  authorize("admin", "user"), // User allowed as of now to test addInventory, to be changed after creating an admin account.
-  addInventory,
-);
+router.post("/addInventory", authMiddleware, authorize("admin"), addInventory);
 
-router.get(
-  "/getInventory",
-  authMiddleware,
-  authorize("admin", "user"), // User allowed as of now to test getInventory, to be changed after creating an admin account.
-  getInventory,
-);
+router.get("/getInventory", authMiddleware, authorize("admin"), getInventory);
 
-router.get(
-  "/stats",
-  authMiddleware,
-  authorize("admin", "user"), // User allowed as of now to test getInventoryStats, to be changed after creating an admin account.
-  getInventoryStats,
-);
+router.get("/stats", authMiddleware, authorize("admin"), getInventoryStats);
 
 module.exports = router;
