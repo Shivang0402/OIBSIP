@@ -13,6 +13,7 @@ import TrackOrderPage from './pages/TrackOrderPage';
 import AdminPage from './pages/AdminPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AdminLogin from './pages/AdminLogin';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
@@ -57,6 +58,7 @@ function App() {
         }
       />
       <Route path="/login" element={<Login />} />
+      <Route path="/admin-login" element={<AdminLogin />} />
       <Route
         path="/admin"
         element={

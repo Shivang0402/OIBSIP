@@ -1,24 +1,22 @@
 import { useState } from 'react';
-import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
 import AuthCard from '../components/auth/AuthCard';
 import InputField from '../components/auth/InputField';
 import PrimaryButton from '../components/auth/PrimaryButton';
 import AuthLink from '../components/auth/AuthLink';
 import FormMessage from '../components/auth/FormMessage';
-import { loginUser } from '../services/authService';
+import { adminLogin } from '../services/authService';
 import { getToken, saveToken, saveUser } from '../services/session';
 import { isRequired, isValidEmail } from '../utils/validators';
 
-function Login() {
+function AdminLogin() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [successMessage] = useState(location.state?.success || '');
 
   if (getToken()) {
     return <Navigate to="/" replace />;
@@ -42,10 +40,10 @@ function Login() {
     setLoading(true);
     setFormError('');
     try {
-      const data = await loginUser({ email: form.email, password: form.password });
+      const data = await adminLogin({ email: form.email, password: form.password });
       saveToken(data.token);
       saveUser({ id: data.data.id, name: data.data.name, email: data.data.email, role: data.data.role });
-      navigate('/');
+      navigate('/admin');
     } catch (error) {
       setFormError(error.message);
     } finally {
@@ -55,23 +53,22 @@ function Login() {
 
   return (
     <AuthLayout>
-      <AuthCard title="Welcome back" subtitle="Sign in to continue your order">
-        {successMessage && <FormMessage type="success">{successMessage}</FormMessage>}
+      <AuthCard title="Admin Portal" subtitle="Sign in to manage the store">
         {formError && <FormMessage type="error">{formError}</FormMessage>}
 
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <InputField
-            id="login-email"
+            id="admin-email"
             label="Email"
             type="email"
             name="email"
-            placeholder="you@example.com"
+            placeholder="admin@pizzanova.com"
             value={form.email}
             onChange={handleChange}
             error={errors.email}
           />
           <InputField
-            id="login-password"
+            id="admin-password"
             label="Password"
             type="password"
             name="password"
@@ -82,18 +79,12 @@ function Login() {
           />
 
           <PrimaryButton type="submit" loading={loading}>
-            Sign In
+            Sign In to Dashboard
           </PrimaryButton>
 
           <div className="auth-form__footer">
             <p>
-              Don&apos;t have an account? <AuthLink to="/register">Register</AuthLink>
-            </p>
-            <p>
-              <AuthLink to="/forgot-password">Forgot password?</AuthLink>
-            </p>
-            <p>
-              <AuthLink to="/admin-login">Admin login</AuthLink>
+              Not an admin? <AuthLink to="/login">User login</AuthLink>
             </p>
           </div>
         </form>
@@ -102,4 +93,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default AdminLogin;

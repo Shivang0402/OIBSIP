@@ -30,7 +30,7 @@ function Home() {
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroIndex((current) => (current + 1) % HERO_IMAGES.length);
-    }, 5000);
+    }, 3000);
     return () => clearInterval(timer);
   }, []);
 

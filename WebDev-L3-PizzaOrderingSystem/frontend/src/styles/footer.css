@@ -22,6 +22,10 @@
 
 /* ---------- Brand ---------- */
 
+.footer__brand {
+  min-width: 0;
+}
+
 .footer-brand {
   display: inline-flex;
   align-items: center;

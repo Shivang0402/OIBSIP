@@ -219,6 +219,70 @@ const userLogin = async (req, res) => {
   }
 };
 
+const adminLogin = async (req, res) => {
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const password = String(req.body.password || "");
+  try {
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required.",
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        message: "Enter a valid email address.",
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Admin account does not exist.",
+      });
+    }
+
+    if (user.role !== "admin") {
+      return res.status(403).json({
+        message: "Access restricted to admin accounts only.",
+      });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      return res.status(401).json({
+        message: "Invalid credentials.",
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.EXPIRY },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin login successful",
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+      token,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.name,
+      message: error.message,
+    });
+  }
+};
+
 const userProfile = async (req, res) => {
   const user = await User.findById(req.user.id).select("-password");
 
@@ -461,6 +525,7 @@ module.exports = {
   registerUser,
   verifyEmail,
   userLogin,
+  adminLogin,
   userProfile,
   updateProfile,
   inventory,

@@ -12,6 +12,10 @@ export function loginUser(payload) {
   return api.post('/auth/login', payload);
 }
 
+export function adminLogin(payload) {
+  return api.post('/auth/admin-login', payload);
+}
+
 export function forgotPassword(email) {
   return api.post('/auth/forgotpass', { email });
 }

@@ -477,6 +477,29 @@ function AdminPage() {
             PizzaNova <span>Admin</span>
           </div>
           <nav className="admin-sidebar__nav">{renderSidebarNav('admin-sidebar')}</nav>
+          {!loading && (
+            <div className="admin-sidebar__snapshot">
+              <span className="admin-sidebar__snapshot-title">Store snapshot</span>
+              <div className="admin-sidebar__snapshot-grid">
+                <div>
+                  <strong>{overview.totalOrders}</strong>
+                  <span>Orders</span>
+                </div>
+                <div>
+                  <strong>{pizzas.length}</strong>
+                  <span>Menu</span>
+                </div>
+                <div>
+                  <strong>{stats?.totalItems ?? 0}</strong>
+                  <span>Items</span>
+                </div>
+                <div className="admin-sidebar__snapshot-alert">
+                  <strong>{lowStockItems.length}</strong>
+                  <span>Low</span>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="admin-sidebar__footer">
             <Link className="admin-sidebar__store" to="/">
               <Store size={15} />

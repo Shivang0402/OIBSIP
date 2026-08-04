@@ -6,6 +6,7 @@ const {
   registerUser,
   verifyEmail,
   userLogin,
+  adminLogin,
   userProfile,
   updateProfile,
   inventory,
@@ -17,6 +18,7 @@ const {
 router.post("/register", registerUser);
 router.get("/verifyemail/:token", verifyEmail);
 router.post("/login", userLogin);
+router.post("/admin-login", adminLogin);
 router.post("/forgotpass", forgotPassword);
 router.patch("/resetpass/:token", resetPassword);
 router.post(
