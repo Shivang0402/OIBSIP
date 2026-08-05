@@ -73,7 +73,7 @@ The project demonstrates a complete full-stack workflow involving authentication
 |---------|----------|
 | Dashboard | Store Statistics, Low Stock Summary |
 | Pizza | Add, Edit, Delete Pizzas |
-| Inventory | Manage Ingredients, Update Stock, Thresholds |
+| Inventory | Manage Ingredients, Update Stock, Thresholds, Delete Items |
 | Orders | View, Search, Filter, Update Status, Cancel |
 | Automation | Auto Inventory Deduction, Low Stock Alerts |
 

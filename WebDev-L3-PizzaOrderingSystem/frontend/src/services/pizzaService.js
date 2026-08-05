@@ -15,3 +15,7 @@ export function addPizza(payload) {
 export function updatePizza(id, payload) {
   return api.patch(`/pizza/updatePizza/${id}`, payload);
 }
+
+export function deletePizza(id) {
+  return api.delete(`/pizza/deletePizza/${id}`);
+}

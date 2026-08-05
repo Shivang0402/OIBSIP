@@ -16,17 +16,19 @@ import {
   Search,
   ShieldCheck,
   Store,
+  Trash2,
   X,
 } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
 import { getOrders, updateOrderStatus } from '../services/orderService';
-import { getPizzas, addPizza, updatePizza } from '../services/pizzaService';
+import { getPizzas, addPizza, updatePizza, deletePizza } from '../services/pizzaService';
 import {
   getInventory,
   addInventory,
   updateInventory,
+  deleteInventoryItem,
   getInventoryStats,
 } from '../services/inventoryService';
 import { getOrderItemsLabel, getOrderNumber } from '../utils/orderItems';
@@ -167,6 +169,7 @@ function AdminPage() {
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const [savingId, setSavingId] = useState('');
+  const [deletingId, setDeletingId] = useState('');
   const [focusStockId, setFocusStockId] = useState(null);
 
   const [modal, setModal] = useState(null);
@@ -378,6 +381,34 @@ function AdminPage() {
       notify(err.message);
     } finally {
       setSavingId('');
+    }
+  }
+
+  async function handleDeletePizza(pizza) {
+    if (!window.confirm(`Delete "${pizza.name}" from the menu? This cannot be undone.`)) return;
+    setDeletingId(pizza._id);
+    try {
+      await deletePizza(pizza._id);
+      notify(`"${pizza.name}" removed from the menu`);
+      await loadAll();
+    } catch (err) {
+      notify(err.message);
+    } finally {
+      setDeletingId('');
+    }
+  }
+
+  async function handleDeleteInventory(item) {
+    if (!window.confirm(`Delete "${item.name}" from inventory? This cannot be undone.`)) return;
+    setDeletingId(item._id);
+    try {
+      await deleteInventoryItem(item._id);
+      notify(`"${item.name}" removed from inventory`);
+      await loadAll();
+    } catch (err) {
+      notify(err.message);
+    } finally {
+      setDeletingId('');
     }
   }
 
@@ -781,7 +812,7 @@ function AdminPage() {
                             <th>Pizza</th>
                             <th>Price</th>
                             <th>Availability</th>
-                            <th className="admin-table__actions">Save</th>
+                            <th className="admin-table__actions">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -827,18 +858,33 @@ function AdminPage() {
                                     onClick={() => togglePizza(pizza)}
                                   />
                                 </td>
-                                <td data-label="Save">
-                                  {dirty && (
+                                <td data-label="Actions">
+                                  <div className="admin-cell__actions">
+                                    {dirty && (
+                                      <button
+                                        type="button"
+                                        className="admin-iconbtn admin-iconbtn--save"
+                                        title="Save price"
+                                        disabled={busy}
+                                        onClick={() => savePizza(pizza)}
+                                      >
+                                        {busy ? <Loader2 size={14} className="admin-spin" /> : <Save size={14} />}
+                                      </button>
+                                    )}
                                     <button
                                       type="button"
-                                      className="admin-iconbtn admin-iconbtn--save"
-                                      title="Save price"
-                                      disabled={busy}
-                                      onClick={() => savePizza(pizza)}
+                                      className="admin-iconbtn admin-iconbtn--danger"
+                                      title={`Delete ${pizza.name}`}
+                                      disabled={busy || deletingId === pizza._id}
+                                      onClick={() => handleDeletePizza(pizza)}
                                     >
-                                      {busy ? <Loader2 size={14} className="admin-spin" /> : <Save size={14} />}
+                                      {deletingId === pizza._id ? (
+                                        <Loader2 size={15} className="admin-spin" />
+                                      ) : (
+                                        <Trash2 size={15} />
+                                      )}
                                     </button>
-                                  )}
+                                  </div>
                                 </td>
                               </tr>
                             );
@@ -878,7 +924,7 @@ function AdminPage() {
                             <th>Category</th>
                             <th>Stock level</th>
                             <th>Availability</th>
-                            <th className="admin-table__actions">Save</th>
+                            <th className="admin-table__actions">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -948,18 +994,33 @@ function AdminPage() {
                                     onClick={() => toggleInventory(item)}
                                   />
                                 </td>
-                                <td data-label="Save">
-                                  {dirty && (
+                                <td data-label="Actions">
+                                  <div className="admin-cell__actions">
+                                    {dirty && (
+                                      <button
+                                        type="button"
+                                        className="admin-iconbtn admin-iconbtn--save"
+                                        title="Save stock"
+                                        disabled={busy}
+                                        onClick={() => saveInventory(item)}
+                                      >
+                                        {busy ? <Loader2 size={14} className="admin-spin" /> : <Save size={14} />}
+                                      </button>
+                                    )}
                                     <button
                                       type="button"
-                                      className="admin-iconbtn admin-iconbtn--save"
-                                      title="Save stock"
-                                      disabled={busy}
-                                      onClick={() => saveInventory(item)}
+                                      className="admin-iconbtn admin-iconbtn--danger"
+                                      title={`Delete ${item.name}`}
+                                      disabled={busy || deletingId === item._id}
+                                      onClick={() => handleDeleteInventory(item)}
                                     >
-                                      {busy ? <Loader2 size={14} className="admin-spin" /> : <Save size={14} />}
+                                      {deletingId === item._id ? (
+                                        <Loader2 size={15} className="admin-spin" />
+                                      ) : (
+                                        <Trash2 size={15} />
+                                      )}
                                     </button>
-                                  )}
+                                  </div>
                                 </td>
                               </tr>
                             );

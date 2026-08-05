@@ -32,7 +32,7 @@ function ActiveOrderStrip() {
         );
         if (!cancelled) setOrder(active || null);
       } catch {
-        // strip is optional — hide silently on failure
+        if (!cancelled) setOrder(null);
       } finally {
         if (!cancelled) setLoaded(true);
       }

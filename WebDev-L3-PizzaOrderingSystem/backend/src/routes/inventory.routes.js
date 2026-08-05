@@ -4,6 +4,7 @@ const {
   addInventory,
   getInventory,
   updateInventory,
+  deleteInventory,
   getInventoryStats,
 } = require("../controllers/inventory.controller");
 const { authMiddleware, authorize } = require("../middlewares/authMiddleware");
@@ -13,6 +14,13 @@ router.patch(
   authMiddleware,
   authorize("admin"),
   updateInventory,
+);
+
+router.delete(
+  "/deleteInventory/:id",
+  authMiddleware,
+  authorize("admin"),
+  deleteInventory,
 );
 
 router.post("/addInventory", authMiddleware, authorize("admin"), addInventory);

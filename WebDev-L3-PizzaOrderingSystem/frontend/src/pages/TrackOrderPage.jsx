@@ -95,23 +95,20 @@ function TrackOrderPage() {
       await retryOrderPayment(order._id, getOrderNumber(order));
       await reloadOrder();
     } catch (retryFailure) {
-      if (retryFailure.message === PAYMENT_DISMISSED) {
-        // Popup closed without completing; order stays pending.
-      } else {
+      if (retryFailure.message !== PAYMENT_DISMISSED) {
         setRetryError(
           retryFailure.description ||
             retryFailure.message ||
             'Payment failed. Please try again.',
         );
         if (order.paymentStatus !== 'Failed') {
-          try {
-            await markPaymentFailed(order._id);
-            setOrder((current) =>
-              current ? { ...current, paymentStatus: 'Failed' } : current,
-            );
-          } catch {
-            // ignore
-          }
+          await markPaymentFailed(order._id)
+            .then(() =>
+              setOrder((current) =>
+                current ? { ...current, paymentStatus: 'Failed' } : current,
+              ),
+            )
+            .catch(() => {});
         }
       }
     } finally {

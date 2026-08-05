@@ -184,21 +184,14 @@ function OrderCard({ order, onChange }) {
       await retryOrderPayment(order._id, getOrderNumber(order));
       if (onChange) await onChange();
     } catch (retryFailure) {
-      if (retryFailure.message === PAYMENT_DISMISSED) {
-        // Popup closed without completing; order stays pending.
-      } else {
+      if (retryFailure.message !== PAYMENT_DISMISSED) {
         setRetryError(
           retryFailure.description ||
             retryFailure.message ||
             'Payment failed. Please try again.',
         );
         if (order.paymentStatus !== 'Failed' && onChange) {
-          try {
-            await markPaymentFailed(order._id);
-            await onChange();
-          } catch {
-            // ignore
-          }
+          await markPaymentFailed(order._id).then(onChange).catch(() => {});
         }
       }
     } finally {

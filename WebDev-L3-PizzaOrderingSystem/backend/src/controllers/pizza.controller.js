@@ -87,4 +87,26 @@ const updatePizza = async (req, res) => {
   }
 };
 
-module.exports = { addPizza, getPizza, getPizzaById, updatePizza };
+const deletePizza = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pizza = await Pizza.findByIdAndDelete(id);
+    if (!pizza) {
+      return res.status(404).json({
+        success: false,
+        message: "Pizza does not exist.",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Pizza deleted successfully.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { addPizza, getPizza, getPizzaById, updatePizza, deletePizza };

@@ -14,6 +14,10 @@ export function updateInventory(id, payload) {
   return api.patch(`/inventory/updateInventory/${id}`, payload);
 }
 
+export function deleteInventoryItem(id) {
+  return api.delete(`/inventory/deleteInventory/${id}`);
+}
+
 export function getInventoryStats() {
   return api.get('/inventory/stats');
 }

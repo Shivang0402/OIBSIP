@@ -140,9 +140,32 @@ const getInventoryStats = async (req, res) => {
     });
   }
 };
+const deleteInventory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const inventory = await Inventory.findByIdAndDelete(id);
+    if (!inventory) {
+      return res.status(404).json({
+        success: false,
+        message: "Item does not exist.",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Item deleted successfully.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   addInventory,
   getInventory,
   updateInventory,
+  deleteInventory,
   getInventoryStats,
 };

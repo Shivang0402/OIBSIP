@@ -150,11 +150,7 @@ function CheckoutPage() {
     } catch (error) {
       if (error.message === PAYMENT_DISMISSED) setPaymentState('pending');
       else {
-        try {
-          await markPaymentFailed(order.orderId);
-        } catch {
-          // ignore
-        }
+        await markPaymentFailed(order.orderId).catch(() => {});
         setPaymentError(
           error.description ||
             error.message ||

@@ -45,4 +45,5 @@ export const api = {
   get: (path, options) => apiRequest(path, { method: 'GET', ...options }),
   post: (path, body) => apiRequest(path, { method: 'POST', body }),
   patch: (path, body) => apiRequest(path, { method: 'PATCH', body }),
+  delete: (path) => apiRequest(path, { method: 'DELETE' }),
 };
