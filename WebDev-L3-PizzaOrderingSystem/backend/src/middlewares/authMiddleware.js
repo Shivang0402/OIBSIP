@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
-const authMiddleware = (req, res, next) => {
+const User = require("../models/userModel");
+
+const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -11,7 +13,16 @@ const authMiddleware = (req, res, next) => {
   try {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+
+    const user = await User.findById(decoded.id).select("_id role");
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Account no longer exists. Please sign in again.",
+      });
+    }
+
+    req.user = { id: user._id.toString(), role: user.role };
 
     next();
   } catch (error) {

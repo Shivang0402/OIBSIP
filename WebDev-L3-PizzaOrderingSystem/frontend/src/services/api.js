@@ -1,4 +1,6 @@
-import { getToken } from './session';
+import { getToken, clearSession } from './session';
+
+export const AUTH_EVENT = 'pizzanova:session-cleared';
 
 async function apiRequest(path, { method = 'GET', body, params } = {}) {
   const token = getToken();
@@ -32,6 +34,10 @@ async function apiRequest(path, { method = 'GET', body, params } = {}) {
   }
 
   if (!response.ok) {
+    if (response.status === 401 && token) {
+      clearSession();
+      window.dispatchEvent(new Event(AUTH_EVENT));
+    }
     const message = data.message || data.error || 'Something went wrong. Please try again.';
     const error = new Error(message);
     error.status = response.status;

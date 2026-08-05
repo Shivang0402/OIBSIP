@@ -1,6 +1,8 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
+import { AUTH_EVENT } from './services/api';
 import Home from './pages/Home';
 import MenuPage from './pages/MenuPage';
 import PizzaDetailPage from './pages/PizzaDetailPage';
@@ -19,6 +21,17 @@ import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 
 function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    function handleSessionCleared() {
+      navigate('/login', { replace: true });
+    }
+
+    window.addEventListener(AUTH_EVENT, handleSessionCleared);
+    return () => window.removeEventListener(AUTH_EVENT, handleSessionCleared);
+  }, [navigate]);
+
   return (
     <Routes>
       <Route path="/" element={<Home />} />

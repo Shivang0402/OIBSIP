@@ -84,6 +84,13 @@ function ProfilePage() {
       try {
         const data = await getProfile();
         if (cancelled) return;
+        if (!data.user) {
+          clearSession();
+          navigate('/login', {
+            state: { success: 'Your account no longer exists. Please register again.' },
+          });
+          return;
+        }
         setUser(data.user);
         saveUser({
           id: data.user._id || data.user.id,
