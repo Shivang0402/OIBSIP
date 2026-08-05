@@ -338,7 +338,7 @@ const forgotPassword = async (req, res) => {
     const passVerificationLink = `${FRONTEND_URL}/reset-password/${passToken}`;
 
     await transporter.sendMail({
-      from: process.env.USER_EMAIL,
+      from: process.env.EMAIL_USER,
       to: user.email,
       subject: "Reset your PizzaNova password",
       html: renderEmail({

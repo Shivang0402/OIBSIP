@@ -16,7 +16,6 @@ const addInventory = async (req, res) => {
     if (existingInventory) {
       return res.status(400).json({
         message: "Item already exists. Update Stock, if needed.",
-        inventory,
       });
     }
 

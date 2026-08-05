@@ -57,7 +57,7 @@ cron.schedule("* * * * *", async () => {
     });
 
     await transporter.sendMail({
-      from: process.env.USER_EMAIL,
+      from: process.env.EMAIL_USER,
       to: admin.email,
       subject: "Low Stock Alert — PizzaNova",
       html,

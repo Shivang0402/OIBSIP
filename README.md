@@ -7,7 +7,6 @@
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 A full-stack pizza ordering & inventory management platform built using the MERN stack.
-A modern full-stack pizza ordering and inventory management platform built with the MERN stack.
 
 ## Screenshots
 ### Landing Page
