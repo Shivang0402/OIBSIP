@@ -15,7 +15,6 @@ cron.schedule("* * * * *", async () => {
     });
 
     if (lowStockItems.length === 0) {
-      console.log("No low stock items.");
       return;
     }
 
@@ -24,7 +23,6 @@ cron.schedule("* * * * *", async () => {
     });
 
     if (!admin) {
-      console.log("Admin not found.");
       return;
     }
 

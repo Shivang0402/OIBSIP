@@ -198,7 +198,7 @@ function AdminPage() {
     ]);
     return {
       orders: ordersRes.orders || [],
-      pizzas: pizzasRes.pizzas || [],
+      pizzas: pizzasRes.pizza || [],
       inventory: inventoryRes.inventory || [],
       stats: statsRes.data || null,
     };
