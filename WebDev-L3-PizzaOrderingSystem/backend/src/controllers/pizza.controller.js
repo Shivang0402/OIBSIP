@@ -24,11 +24,6 @@ const addPizza = async (req, res) => {
 const getPizza = async (req, res) => {
   try {
     const pizza = await Pizza.find();
-    if (!pizza) {
-      return res.status(404).json({
-        message: "No pizza exists.",
-      });
-    }
     return res.status(201).json({
       pizza,
     });
@@ -72,20 +67,11 @@ const updatePizza = async (req, res) => {
       });
     }
 
-    if (name !== undefined) {
-      pizza.name = name;
-    }
-    if (description !== undefined) {
-      pizza.description = description;
-    }
-    if (price !== undefined) {
-      pizza.price = price;
-    }
-    if (image !== undefined) {
-      pizza.image = image;
-    }
-    if (isAvailable !== undefined) {
-      pizza.isAvailable = isAvailable;
+    const updates = { name, description, price, image, isAvailable };
+    for (const [field, value] of Object.entries(updates)) {
+      if (value !== undefined) {
+        pizza[field] = value;
+      }
     }
     await pizza.save();
 

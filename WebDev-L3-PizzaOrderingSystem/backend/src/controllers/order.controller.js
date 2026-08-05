@@ -57,6 +57,32 @@ const validateIngredients = async (items) => {
   return { data: { requirements, inventoryDocs } };
 };
 
+const findOrderForRole = (req) => {
+  const query =
+    req.user.role === "admin"
+      ? { _id: req.params.id }
+      : { _id: req.params.id, user: req.user.id };
+  return Order.findOne(query);
+};
+
+const createRazorpayOrder = async (order) => {
+  const razorpayOrder = await razorpay.orders.create({
+    amount: order.totalPrice * 100,
+    currency: "INR",
+    receipt: order._id.toString(),
+  });
+  order.razorpayOrderId = razorpayOrder.id;
+  await order.save();
+  return razorpayOrder;
+};
+
+const emitOrderStatusUpdated = (order) => {
+  getIO().to(`user_${order.user.toString()}`).emit("orderStatusUpdated", {
+    orderId: order._id,
+    status: order.orderStatus,
+  });
+};
+
 const placeOrder = async (req, res) => {
   const { items, deliveryAddress } = req.body;
 
@@ -187,14 +213,7 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    const razorpayOrder = await razorpay.orders.create({
-      amount: order.totalPrice * 100,
-      currency: "INR",
-      receipt: order._id.toString(),
-    });
-
-    order.razorpayOrderId = razorpayOrder.id;
-    await order.save();
+    const razorpayOrder = await createRazorpayOrder(order);
 
     return res.status(201).json({
       success: true,
@@ -214,12 +233,7 @@ const placeOrder = async (req, res) => {
 
 const markPaymentFailed = async (req, res) => {
   try {
-    const query =
-      req.user.role === "admin"
-        ? { _id: req.params.id }
-        : { _id: req.params.id, user: req.user.id };
-
-    const order = await Order.findOne(query);
+    const order = await findOrderForRole(req);
 
     if (!order) {
       return res.status(404).json({
@@ -249,12 +263,7 @@ const markPaymentFailed = async (req, res) => {
 
 const retryPayment = async (req, res) => {
   try {
-    const query =
-      req.user.role === "admin"
-        ? { _id: req.params.id }
-        : { _id: req.params.id, user: req.user.id };
-
-    const order = await Order.findOne(query);
+    const order = await findOrderForRole(req);
 
     if (!order) {
       return res.status(404).json({
@@ -269,13 +278,7 @@ const retryPayment = async (req, res) => {
     }
 
     if (!order.razorpayOrderId) {
-      const razorpayOrder = await razorpay.orders.create({
-        amount: order.totalPrice * 100,
-        currency: "INR",
-        receipt: order._id.toString(),
-      });
-      order.razorpayOrderId = razorpayOrder.id;
-      await order.save();
+      await createRazorpayOrder(order);
     }
 
     return res.status(200).json({
@@ -390,11 +393,7 @@ const verifyPayment = async (req, res) => {
     order.paidAt = Date.now();
     await order.save();
 
-    const io = getIO();
-    io.to(`user_${order.user.toString()}`).emit("orderStatusUpdated", {
-      orderId: order._id,
-      status: order.orderStatus,
-    });
+    emitOrderStatusUpdated(order);
 
     return res.status(200).json({
       success: true,
@@ -440,18 +439,7 @@ const getOrders = async (req, res) => {
 
 const getOrderById = async (req, res) => {
   try {
-    let order;
-
-    if (req.user.role === "admin") {
-      order = await Order.findOne({
-        _id: req.params.id,
-      });
-    } else {
-      order = await Order.findOne({
-        _id: req.params.id,
-        user: req.user.id,
-      });
-    }
+    const order = await findOrderForRole(req);
 
     if (!order) {
       return res.status(404).json({
@@ -488,11 +476,7 @@ const updateOrderStatus = async (req, res) => {
         message: "Order not found.",
       });
     }
-    const io = getIO();
-    io.to(`user_${order.user.toString()}`).emit("orderStatusUpdated", {
-      orderId: order._id,
-      status: order.orderStatus,
-    });
+    emitOrderStatusUpdated(order);
     return res.status(200).json({
       orderStatus: order.orderStatus,
     });

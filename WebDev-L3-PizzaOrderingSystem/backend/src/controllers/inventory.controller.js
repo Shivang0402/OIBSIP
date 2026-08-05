@@ -41,32 +41,19 @@ const addInventory = async (req, res) => {
 
 const getInventory = async (req, res) => {
   const { category } = req.query;
-  let inventory;
   try {
-    if (category) {
-      inventory = await Inventory.find({ category });
+    const inventory = category
+      ? await Inventory.find({ category })
+      : await Inventory.find();
 
-      if (!inventory.length > 0) {
-        return res.status(404).json({
-          message: "Category does not exist.",
-        });
-      } else {
-        return res.status(201).json({
-          inventory,
-        });
-      }
-    } else {
-      inventory = await Inventory.find();
-
-      if (inventory.length === 0) {
-        return res.status(400).json({
-          message: "No items in inventory.",
-        });
-      }
-      return res.status(201).json({
-        inventory,
+    if (inventory.length === 0) {
+      return res.status(category ? 404 : 400).json({
+        message: category ? "Category does not exist." : "No items in inventory.",
       });
     }
+    return res.status(201).json({
+      inventory,
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -88,14 +75,11 @@ const updateInventory = async (req, res) => {
       });
     }
 
-    if (stock !== undefined) {
-      inventory.stock = stock;
-    }
-    if (threshold !== undefined) {
-      inventory.threshold = threshold;
-    }
-    if (isAvailable !== undefined) {
-      inventory.isAvailable = isAvailable;
+    const updates = { stock, threshold, isAvailable };
+    for (const [field, value] of Object.entries(updates)) {
+      if (value !== undefined) {
+        inventory[field] = value;
+      }
     }
     if (inventory.stock > inventory.threshold) {
       inventory.lowStockAlertSent = false;

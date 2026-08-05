@@ -12,6 +12,73 @@ const {
   MAX_NAME_LENGTH,
 } = require("../utils/validators");
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+const issueToken = (user) =>
+  jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: process.env.EXPIRY,
+  });
+
+const authenticateUser = async (req, res, { allowOnlyAdmin = false }) => {
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const password = String(req.body.password || "");
+
+  if (!email || !password) {
+    return res.status(400).json({
+      message: "Email and password are required.",
+    });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({
+      message: "Enter a valid email address.",
+    });
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({
+      message: allowOnlyAdmin
+        ? "Admin account does not exist."
+        : "User does not exist.",
+    });
+  }
+
+  if (allowOnlyAdmin) {
+    if (user.role !== "admin") {
+      return res.status(403).json({
+        message: "Access restricted to admin accounts only.",
+      });
+    }
+  } else if (!user.isVerified) {
+    return res.status(403).json({
+      message: "Email not verified. Please verify your email before logging in.",
+    });
+  }
+
+  const match = await bcrypt.compare(password, user.password);
+
+  if (!match) {
+    return res.status(401).json({
+      message: "Invalid credentials.",
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: allowOnlyAdmin ? "Admin login successful" : "Login successful",
+    data: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    },
+    token: issueToken(user),
+  });
+};
+
 const registerUser = async (req, res) => {
   try {
     const name = String(req.body.name || "").trim();
@@ -78,8 +145,7 @@ const registerUser = async (req, res) => {
       verificationTokenExpires,
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    const verificationLink = `${frontendUrl}/verify-email/${verificationToken}`;
+    const verificationLink = `${FRONTEND_URL}/verify-email/${verificationToken}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -156,61 +222,8 @@ const verifyEmail = async (req, res) => {
 };
 
 const userLogin = async (req, res) => {
-  const email = String(req.body.email || "").trim().toLowerCase();
-  const password = String(req.body.password || "");
   try {
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required.",
-      });
-    }
-
-    if (!isValidEmail(email)) {
-      return res.status(400).json({
-        message: "Enter a valid email address.",
-      });
-    }
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({
-        message: "User does not exist.",
-      });
-    }
-
-    if (!user.isVerified) {
-      return res.status(403).json({
-        message: "Email not verified. Please verify your email before logging in.",
-      });
-    }
-
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
-      return res.status(401).json({
-        message: "Invalid credentials.",
-      });
-    }
-
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.EXPIRY },
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Login successful",
-      data: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-      },
-      token,
-    });
+    await authenticateUser(req, res, { allowOnlyAdmin: false });
   } catch (error) {
     return res.status(500).json({
       error: error.name,
@@ -220,61 +233,8 @@ const userLogin = async (req, res) => {
 };
 
 const adminLogin = async (req, res) => {
-  const email = String(req.body.email || "").trim().toLowerCase();
-  const password = String(req.body.password || "");
   try {
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required.",
-      });
-    }
-
-    if (!isValidEmail(email)) {
-      return res.status(400).json({
-        message: "Enter a valid email address.",
-      });
-    }
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({
-        message: "Admin account does not exist.",
-      });
-    }
-
-    if (user.role !== "admin") {
-      return res.status(403).json({
-        message: "Access restricted to admin accounts only.",
-      });
-    }
-
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
-      return res.status(401).json({
-        message: "Invalid credentials.",
-      });
-    }
-
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.EXPIRY },
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Admin login successful",
-      data: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-      },
-      token,
-    });
+    await authenticateUser(req, res, { allowOnlyAdmin: true });
   } catch (error) {
     return res.status(500).json({
       error: error.name,
@@ -343,7 +303,8 @@ const updateProfile = async (req, res) => {
   }
 };
 
-const forgotPassword = async (req, res) => {  try {
+const forgotPassword = async (req, res) => {
+  try {
     const passToken = crypto.randomBytes(32).toString("hex");
     const passTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
     const email = String(req.body.email || "").trim().toLowerCase();
@@ -374,8 +335,7 @@ const forgotPassword = async (req, res) => {  try {
     user.passTokenExpires = passTokenExpires;
     await user.save();
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    const passVerificationLink = `${frontendUrl}/reset-password/${passToken}`;
+    const passVerificationLink = `${FRONTEND_URL}/reset-password/${passToken}`;
 
     await transporter.sendMail({
       from: process.env.USER_EMAIL,

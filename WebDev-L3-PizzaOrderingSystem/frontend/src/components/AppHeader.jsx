@@ -13,6 +13,13 @@ function getInitials(name) {
     .join('');
 }
 
+const navLinks = [
+  { to: '/', label: 'Home', end: true },
+  { to: '/menu', label: 'Menu' },
+  { to: '/pizza-builder', label: 'Customize' },
+  { to: '/orders', label: 'Track Order' },
+];
+
 function AppHeader() {
   const navigate = useNavigate();
   const user = getUser();
@@ -30,39 +37,18 @@ function AppHeader() {
             PizzaNova
           </Link>
           <nav className="app-header__links" aria-label="Main">
-            <NavLink
-              to="/"
-              end
-              className={({ isActive }) =>
-                `app-header__link${isActive ? ' app-header__link--active' : ''}`
-              }
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to="/menu"
-              className={({ isActive }) =>
-                `app-header__link${isActive ? ' app-header__link--active' : ''}`
-              }
-            >
-              Menu
-            </NavLink>
-            <NavLink
-              to="/pizza-builder"
-              className={({ isActive }) =>
-                `app-header__link${isActive ? ' app-header__link--active' : ''}`
-              }
-            >
-              Customize
-            </NavLink>
-            <NavLink
-              to="/orders"
-              className={({ isActive }) =>
-                `app-header__link${isActive ? ' app-header__link--active' : ''}`
-              }
-            >
-              Track Order
-            </NavLink>
+            {navLinks.map(({ to, label, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  `app-header__link${isActive ? ' app-header__link--active' : ''}`
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
             {user?.role === 'admin' && (
               <NavLink
                 to="/admin"
