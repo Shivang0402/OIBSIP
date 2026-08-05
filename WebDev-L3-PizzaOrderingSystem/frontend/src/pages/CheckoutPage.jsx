@@ -102,8 +102,9 @@ function CheckoutPage() {
           sauce: item.customization.sauce,
           cheese: item.customization.cheese,
           vegetables: item.customization.vegetables,
+          unitPrice: item.price,
         };
-        return item.pizzaId ? { ...base, pizzaId: item.pizzaId } : { ...base, unitPrice: item.price };
+        return item.pizzaId ? { ...base, pizzaId: item.pizzaId } : base;
       });
 
       const data = await placeOrder({ items: orderItems, deliveryAddress });

@@ -10,6 +10,12 @@ const generateOrderNumber = () => {
   return `PZ-${suffix}`;
 };
 
+const getErrorMessage = (error) =>
+  error?.error?.description ||
+  error?.description ||
+  error?.message ||
+  "Something went wrong. Please try again.";
+
 const validateIngredients = async (items) => {
   const requirements = {};
   const addRequirement = (category, name, quantity) => {
@@ -131,6 +137,12 @@ const placeOrder = async (req, res) => {
             message: "Pizza is not available at the moment.",
           });
         }
+        const unitPrice = Number(item.unitPrice);
+        if (!unitPrice || unitPrice < pizza.price) {
+          return res.status(400).json({
+            message: "Invalid pizza price.",
+          });
+        }
         resolvedItems.push({
           pizzaId: pizza._id,
           isCustom: false,
@@ -138,7 +150,7 @@ const placeOrder = async (req, res) => {
             name: pizza.name,
             description: pizza.description,
             image: pizza.image,
-            price: pizza.price,
+            price: unitPrice,
           },
           quantity,
           customization: {
@@ -147,7 +159,7 @@ const placeOrder = async (req, res) => {
             cheese: item.cheese,
             vegetables,
           },
-          totalPrice: pizza.price * quantity,
+          totalPrice: unitPrice * quantity,
         });
       } else {
         const unitPrice = Number(item.unitPrice);
@@ -180,7 +192,7 @@ const placeOrder = async (req, res) => {
     const { error } = await validateIngredients(items);
     if (error) {
       return res.status(error.status).json({
-        message: error.message,
+        message: getErrorMessage(error),
       });
     }
 
@@ -213,7 +225,10 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    const razorpayOrder = await createRazorpayOrder(order);
+    const razorpayOrder = await createRazorpayOrder(order).catch(async (razorpayError) => {
+      await Order.deleteOne({ _id: order._id }).catch(() => {});
+      throw razorpayError;
+    });
 
     return res.status(201).json({
       success: true,
@@ -226,7 +241,7 @@ const placeOrder = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 };
@@ -256,7 +271,7 @@ const markPaymentFailed = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 };
@@ -291,7 +306,7 @@ const retryPayment = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 };
@@ -374,7 +389,7 @@ const verifyPayment = async (req, res) => {
       await order.save();
 
       return res.status(400).json({
-        message: error.message,
+        message: getErrorMessage(error),
       });
     }
 
@@ -403,7 +418,7 @@ const verifyPayment = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 };
@@ -432,7 +447,7 @@ const getOrders = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 };
@@ -453,7 +468,7 @@ const getOrderById = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       error: error.name,
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 };
@@ -482,7 +497,7 @@ const updateOrderStatus = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 };
