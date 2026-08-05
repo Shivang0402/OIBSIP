@@ -1,13 +1,21 @@
 import { getToken } from './session';
 
-async function apiRequest(path, { method = 'GET', body } = {}) {
+async function apiRequest(path, { method = 'GET', body, params } = {}) {
   const token = getToken();
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
 
+  let url = `/api${path}`;
+  if (params) {
+    const query = new URLSearchParams(
+      Object.entries(params).filter(([, value]) => value != undefined),
+    ).toString();
+    if (query) url += `?${query}`;
+  }
+
   let response;
   try {
-    response = await fetch(`/api${path}`, {
+    response = await fetch(url, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
@@ -34,7 +42,7 @@ async function apiRequest(path, { method = 'GET', body } = {}) {
 }
 
 export const api = {
-  get: (path) => apiRequest(path, { method: 'GET' }),
+  get: (path, options) => apiRequest(path, { method: 'GET', ...options }),
   post: (path, body) => apiRequest(path, { method: 'POST', body }),
   patch: (path, body) => apiRequest(path, { method: 'PATCH', body }),
 };
